@@ -8,6 +8,7 @@ import analyticsRoutes from './routes/analyticsRoute.js';
 import salesRoutes from './routes/salesRoute.js';
 import productRoutes from './routes/productRoute.js';
 import purchaseRoutes from './routes/purchaseRoute.js';
+import dashboardRoutes from './routes/dashboardRoute.js'
 
 //load environent variables
 dotenv.config();
@@ -22,6 +23,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app
 
 //Error handling for middleware 
 app.use((err, req, res, next) => {
@@ -37,6 +39,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchases", purchaseRoutes);
+app.use("/api/dashboard", dashboardRoutes)
 
 
 const PORT = process.env.PORT || 5000;

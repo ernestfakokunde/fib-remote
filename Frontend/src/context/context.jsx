@@ -77,12 +77,54 @@ export const GlobalProvider = ({ children }) => {
     navigate('/login');
   };
 
+    //Dashboard Data one by one
+
+    const getProducts = () => {
+      return API.get("/products")
+    }
+
+    const createProduct = (data)=>{
+     return API.post('/products', data)
+    }
+
+
+     const [dashboardMetrics, setDashboardMetrics] = useState({
+    totalSalesToday: 0,
+    totalPurchasesToday: 0,
+    totalProfitToday: 0,
+    lowStockCount: 0,
+});
+    const fetchDashboardMetrics = async () => {
+  try {
+    const [sales, purchases, profit, lowStock] = await Promise.all([
+      API.get("/dashboard/sales/today"),
+      API.get("/dashboard/purchases/today"),
+      API.get("/dashboard/profit/today"),
+      API.get("/dashboard/inventory/low-stock"),
+    ]);
+
+    setDashboardMetrics({
+      totalSalesToday: sales.data.totalSalesToday,
+      totalPurchasesToday: purchases.data.totalPurchasesToday,
+      totalProfitToday: profit.data.totalProfitToday,
+      lowStockCount: lowStock.data.lowStockCount,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
   const value = {
     user,
     loading,
     Register,
     Login,
     logout,
+    dashboardMetrics,
+    fetchDashboardMetrics,
+    getProducts,
+    createProduct
   };
 
   return (

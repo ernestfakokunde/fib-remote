@@ -4,7 +4,7 @@ import Category from "../models/categoryModel.js";
 export const createProduct = async (req, res)=>{
   try {
     const { name, category, costPrice, sellingPrice, status, description, quantity, reOrderLevel } = req.body;
-    if( ! name || !category || !costPrice || !sellingPrice || !status || !description || !quantity || !reOrderlevel ){
+    if( ! name || !category || !costPrice || !sellingPrice || !description || !quantity || !reOrderLevel ){
       return res.status(400).json({message:"Bad request. All fields are required"});
     }
     //check if category exists
@@ -58,71 +58,67 @@ const getStockStatus = (quantity) => {
   }
   return "In Stock";
 }
-  
-export const getAllProducts = async (req, res)=>{
+  export const getAllProducts = async (req, res) => {
   try {
-    const { search , category, stock, sort, page = 1, limit = 12 } = req.query;
-    //search filter
+    const { search, category, stock, sort, page = 1, limit = 12 } = req.query;
 
-    const filter = {}
+    const filter = {};
 
-    if(search){
-      filter.name = { $regex: search, $options:"i"}
+    if (search) {
+      filter.name = { $regex: search, $options: "i" };
     }
-    //category filter
-    if(category){
+
+    if (category) {
       filter.category = category;
     }
 
-     if (stock === "out-of-stock") {
+    if (stock === "out-of-stock") {
       filter.quantity = 0;
     } else if (stock === "low-stock") {
       filter.quantity = { $gt: 0, $lte: 10 };
     } else if (stock === "in-stock") {
       filter.quantity = { $gt: 10 };
     }
-    
+
     const skip = (page - 1) * limit;
     const sortQuery = sort || "-createdAt";
 
     const totalProducts = await Products.countDocuments(filter);
 
     const products = await Products.find(filter)
-    .populate("category", "name")
-    .sort(sortQuery)
-    .skip(skip)
-    .limit(Number(limit));
+      .populate("category", "name")
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(Number(limit));
 
-    const productsWithStatus = await Products.map((product)=>{
+    const productsWithStatus = products.map((product) => {
       const profit = product.sellingPrice - product.costPrice;
-      let stockStatus = "in stock";
-      if(product.quantity === 0){
-        stockStatus = "Out of Stock";
-      }
-      else if(product.quantity <=10){
-        stockStatus = "Low Stock";
-      } ;
+      let stockStatus = "In Stock";
 
-      return{
+      if (product.quantity === 0) stockStatus = "Out of Stock";
+      else if (product.quantity <= 10) stockStatus = "Low Stock";
+
+      return {
         ...product._doc,
         profit,
         stockStatus,
-      }
-    })
+      };
+    });
 
     res.json({
-      success:true,
-       total,
-      pages: Math.ceil(total / limit),
+      success: true,
+      total: totalProducts,
+      pages: Math.ceil(totalProducts / limit),
       currentPage: Number(page),
       products: productsWithStatus,
-    })
+    });
 
   } catch (error) {
-     console.error(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Failed to fetch products" });
   }
-}
+};
+
 
 export const getSingleProduct = async (req, res) => {
   try {
