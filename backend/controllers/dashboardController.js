@@ -2,23 +2,35 @@ import Sales from "../models/salesModel.js";
 import Purchase from "../models/purchaseModel.js";
 import Product from "../models/productModel.js";
 
+const startOfToday = () => {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
 // Sales Today
 export const getSalesToday = async (req, res) => {
   try {
     const userId = req.user._id;
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+    const sales = await Sales.aggregate([
+      {
+        $match: {
+          createdBy: userId,
+          date: { $gte: startOfToday() },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalRevenue" },
+        },
+      },
+    ]);
 
-    const sales = await Sales.find({
-      User: userId,
-      date: { $gte: startOfDay },
-    });
-
-    const totalSalesToday = sales.reduce((acc, sale) => acc + sale.totalAmount, 0);
-    console.log(totalSalesToday);
-
+    const totalSalesToday = sales[0]?.totalRevenue || 0;
     res.json({ totalSalesToday });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to fetch sales today" });
   }
 };
@@ -27,21 +39,26 @@ export const getSalesToday = async (req, res) => {
 export const getPurchasesToday = async (req, res) => {
   try {
     const userId = req.user._id;
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
 
-    const purchases = await Purchase.find({
-      User: userId,
-      date: { $gte: startOfDay },
-    });
+    const purchases = await Purchase.aggregate([
+      {
+        $match: {
+          createdBy: userId,
+          date: { $gte: startOfToday() },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalPurchases: { $sum: "$totalCost" },
+        },
+      },
+    ]);
 
-    const totalPurchasesToday = purchases.reduce(
-      (acc, p) => acc + p.totalCost,
-      0
-    );
-
+    const totalPurchasesToday = purchases[0]?.totalPurchases || 0;
     res.json({ totalPurchasesToday });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to fetch purchases today" });
   }
 };
@@ -50,26 +67,30 @@ export const getPurchasesToday = async (req, res) => {
 export const getTodayProfit = async (req, res) => {
   try {
     const userId = req.user._id;
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
 
-    const sales = await Sales.find({
-      User: userId,
-      date: { $gte: startOfDay },
-    });
+    const profit = await Sales.aggregate([
+      {
+        $match: {
+          createdBy: userId,
+          date: { $gte: startOfToday() },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$totalRevenue" },
+          totalCost: { $sum: "$totalCost" },
+        },
+      },
+    ]);
 
-    let totalRevenue = 0;
-    let totalCost = 0;
-
-    sales.forEach((sale) => {
-      totalRevenue += sale.totalAmount;
-      totalCost += sale.costPriceTotal;
-    });
-
+    const totalRevenue = profit[0]?.totalRevenue || 0;
+    const totalCost = profit[0]?.totalCost || 0;
     const totalProfitToday = totalRevenue - totalCost;
 
     res.json({ totalProfitToday });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to fetch profit today" });
   }
 };
@@ -79,13 +100,29 @@ export const getLowStockCount = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const lowStockProducts = await Product.find({
-      User: userId,
-      stock: { $lt: 10 },
+    const lowStockProducts = await Product.countDocuments({
+      createdBy: userId,
+      quantity: { $gt: 0, $lte: 10 },
     });
 
-    res.json({ lowStockCount: lowStockProducts.length });
+    res.json({ lowStockCount: lowStockProducts });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to fetch low stock items" });
   }
 };
+
+// Total Products
+export const getTotalProducts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const totalProducts = await Product.countDocuments({ createdBy: userId });
+
+    res.json({ totalProducts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch total products" });
+  }
+};
+

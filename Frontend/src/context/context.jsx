@@ -79,13 +79,10 @@ export const GlobalProvider = ({ children }) => {
 
     //Dashboard Data one by one
 
-    const getProducts = () => {
-      return API.get("/products")
-    }
-
-    const createProduct = (data)=>{
-     return API.post('/products', data)
-    }
+    const getProducts = (params = {}) => API.get("/products", { params });
+    const createProduct = (data) => API.post("/products", data);
+    const getCategories = (params = {}) => API.get("/categories", { params });
+    const createCategory = (data) => API.post("/categories", data);
 
 
      const [dashboardMetrics, setDashboardMetrics] = useState({
@@ -93,14 +90,16 @@ export const GlobalProvider = ({ children }) => {
     totalPurchasesToday: 0,
     totalProfitToday: 0,
     lowStockCount: 0,
+    totalProducts: 0,
 });
     const fetchDashboardMetrics = async () => {
   try {
-    const [sales, purchases, profit, lowStock] = await Promise.all([
+    const [sales, purchases, profit, lowStock, totalProducts] = await Promise.all([
       API.get("/dashboard/sales/today"),
       API.get("/dashboard/purchases/today"),
       API.get("/dashboard/profit/today"),
       API.get("/dashboard/inventory/low-stock"),
+      API.get("/dashboard/products/total"),
     ]);
 
     setDashboardMetrics({
@@ -108,6 +107,7 @@ export const GlobalProvider = ({ children }) => {
       totalPurchasesToday: purchases.data.totalPurchasesToday,
       totalProfitToday: profit.data.totalProfitToday,
       lowStockCount: lowStock.data.lowStockCount,
+      totalProducts: totalProducts.data.totalProducts,
     });
   } catch (error) {
     console.log(error);
@@ -124,7 +124,9 @@ export const GlobalProvider = ({ children }) => {
     dashboardMetrics,
     fetchDashboardMetrics,
     getProducts,
-    createProduct
+    createProduct,
+    getCategories,
+    createCategory,
   };
 
   return (

@@ -6,69 +6,71 @@ export const createSale = async (req, res) => {
     const { productId, quantity, sellingPrice, date, customer } = req.body;
     const userId = req.user._id;
 
-    //validate products input
-    if(!productId || !quantity || !sellingPrice || !date || !costPrice){
-      return res.status(400).json({message:"All fields are required !!!"})
-    }
-    //check if selected productts exists
-
-    const productExists = await Products.findOne({_id:productId})
-    //check if the product exists
-    if(!productExists){
-      return res.status(404).json({message:"Product does not exists"})
+    if (!productId || quantity === undefined || sellingPrice === undefined) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    //const stock availability
-     if (quantity > productExists.quantity) {
+    const parsedQuantity = Number(quantity);
+    const parsedSellingPrice = Number(sellingPrice);
+
+    if (Number.isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      return res.status(400).json({ message: "Quantity must be greater than 0" });
+    }
+
+    if (Number.isNaN(parsedSellingPrice) || parsedSellingPrice <= 0) {
+      return res.status(400).json({ message: "Selling price must be greater than 0" });
+    }
+
+    const productExists = await Products.findOne({ _id: productId, createdBy: userId });
+    if (!productExists) {
+      return res.status(404).json({ message: "Product does not exist" });
+    }
+
+    if (parsedQuantity > productExists.quantity) {
       return res.status(400).json({
         message: `Only ${productExists.quantity} items left in stock`,
       });
     }
 
-    
-    //use the product cost price
-    const costPrice = productExists.costPrice;;
-    //calculations
-    const totalRevenue = sellingPrice * quantity;
-    const totalCost = costPrice * quantity;
+    const costPrice = productExists.costPrice;
+    const totalRevenue = parsedSellingPrice * parsedQuantity;
+    const totalCost = costPrice * parsedQuantity;
     const profit = totalRevenue - totalCost;
-
-    //create the new sale
 
     const newSale = await Sales.create({
       product: productId,
-      quantity,
-      sellingPrice,  
+      quantity: parsedQuantity,
+      sellingPrice: parsedSellingPrice,
       totalRevenue,
+      totalCost,
       costPrice,
       profit,
-      date: date || Date.now(),
-      customer: customer || "Walk-in Customer",
-      User: userId
-    })
+      date: date ? new Date(date) : Date.now(),
+      customer: customer?.trim() || "Walk-in Customer",
+      createdBy: userId,
+    });
 
-    //update product stock
-    productExists.quantity -= quantity;
+    productExists.quantity -= parsedQuantity;
     await productExists.save();
 
-    //send response
     res.status(201).json({
       message: "Sale added successfully",
       sale: newSale,
       product: productExists,
       success: true,
-    })
-
+    });
   } catch (error) {
     console.error("Error adding sale:", error);
-    res.status(500).json({message: "Server Error"});
+    res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const getAllSales = async (req, res) => {
   try {
     const userId = req.user._id;
-    const sales = await Sales.find({User: userId}).populate("product", "name").sort({createdAt: -1});
+    const sales = await Sales.find({ createdBy: userId })
+      .populate("product", "name")
+      .sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       totalSales: sales.length,
@@ -82,4 +84,4 @@ export const getAllSales = async (req, res) => {
       error: error.message,
     });
   }
-}
+};

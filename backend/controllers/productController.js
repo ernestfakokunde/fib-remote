@@ -1,71 +1,107 @@
 import Products from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
 
-export const createProduct = async (req, res)=>{
+export const createProduct = async (req, res) => {
   try {
-    const { name, category, costPrice, sellingPrice, status, description, quantity, reOrderLevel } = req.body;
-    if( ! name || !category || !costPrice || !sellingPrice || !description || !quantity || !reOrderLevel ){
-      return res.status(400).json({message:"Bad request. All fields are required"});
-    }
-    //check if category exists
-    const categoryexists = await Category.findById(category)
-    if(!categoryexists){
-      return res.status(400).json({message:"Category does not exist"});
-    }
-  
-    //check if name already exists to avoid duplicates
-    const nameexists = await Products.findOne({name})
-    if(nameexists){
-      return res.status(409).json({message:"Product name already exists"});
+    const {
+      name,
+      category,
+      sku,
+      supplier,
+      costPrice,
+      sellingPrice,
+      description = "",
+      quantity = 0,
+      reOrderLevel = 10,
+    } = req.body;
+
+    if (!name || !category || !sku || costPrice === undefined || sellingPrice === undefined) {
+      return res.status(400).json({ message: "Bad request. Missing required fields" });
     }
 
-    //selling price should be greater than cost price
-    if( sellingPrice <= costPrice){
-      return res.status(400).json({ message:"Selling price should be greater than cost price Take another look !!!"});
+    const userId = req.user._id;
+    const categoryexists = await Category.findOne({ _id: category, createdBy: userId });
+    if (!categoryexists) {
+      return res.status(400).json({ message: "Category does not exist" });
+    }
+
+    const normalizedName = name.trim();
+    const normalizedSku = sku.trim().toUpperCase();
+
+    const duplicateName = await Products.findOne({
+      name: { $regex: `^${normalizedName}$`, $options: "i" },
+      createdBy: userId,
+    });
+    if (duplicateName) {
+      return res.status(409).json({ message: "Product name already exists" });
+    }
+
+    const duplicateSku = await Products.findOne({ sku: normalizedSku, createdBy: userId });
+    if (duplicateSku) {
+      return res.status(409).json({ message: "SKU already exists" });
+    }
+
+    const parsedCostPrice = Number(costPrice);
+    const parsedSellingPrice = Number(sellingPrice);
+    const parsedQuantity = Math.max(0, Number(quantity) || 0);
+    const parsedReOrderLevel = Math.max(0, Number(reOrderLevel) || 10);
+
+    if (Number.isNaN(parsedCostPrice) || Number.isNaN(parsedSellingPrice)) {
+      return res.status(400).json({ message: "Cost price and selling price must be numbers" });
+    }
+
+    if (parsedSellingPrice <= parsedCostPrice) {
+      return res.status(400).json({
+        message: "Selling price should be greater than cost price. Take another look!",
+      });
     }
 
     const product = new Products({
-      name,
+      name: normalizedName,
+      sku: normalizedSku,
+      supplier: supplier?.trim() || "Unknown",
       category,
-      costPrice,
-      sellingPrice,
-      status,
-      description,
-      quantity: quantity || 0,
-      reOrderLevel: reOrderLevel || 10,
-      createdBy: req.user._id,
-    })
+      costPrice: parsedCostPrice,
+      sellingPrice: parsedSellingPrice,
+      description: description?.trim() || "",
+      quantity: parsedQuantity,
+      reOrderLevel: parsedReOrderLevel,
+      createdBy: userId,
+    });
 
     const savedProduct = await product.save();
     res.status(201).json({
-      message:"product created succesfully",
+      message: "Product created successfully",
       product: savedProduct,
-      sucess:true,
-    })
-
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error product creation failed try again" });
   }
-} 
+};
 
-const getStockStatus = (quantity) => {
-  if( quantity === 0){
+const getStockStatus = (quantity, reOrderLevel = 10) => {
+  if (quantity === 0) {
     return "Out of Stock";
   }
-  if( quantity <= 10){
+  if (quantity <= reOrderLevel) {
     return "Low Stock";
   }
   return "In Stock";
-}
-  export const getAllProducts = async (req, res) => {
+};
+export const getAllProducts = async (req, res) => {
   try {
     const { search, category, stock, sort, page = 1, limit = 12 } = req.query;
+    const userId = req.user._id;
 
-    const filter = {};
+    const filter = { createdBy: userId };
+
+    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
+    const limitNumber = Math.max(1, parseInt(limit, 10) || 12);
 
     if (search) {
-      filter.name = { $regex: search, $options: "i" };
+      filter.name = { $regex: search.trim(), $options: "i" };
     }
 
     if (category) {
@@ -80,26 +116,25 @@ const getStockStatus = (quantity) => {
       filter.quantity = { $gt: 10 };
     }
 
-    const skip = (page - 1) * limit;
+    const skip = (pageNumber - 1) * limitNumber;
     const sortQuery = sort || "-createdAt";
 
     const totalProducts = await Products.countDocuments(filter);
+    console.log(totalProducts);
 
     const products = await Products.find(filter)
       .populate("category", "name")
       .sort(sortQuery)
       .skip(skip)
-      .limit(Number(limit));
+      .limit(limitNumber)
+      .lean();
 
     const productsWithStatus = products.map((product) => {
       const profit = product.sellingPrice - product.costPrice;
-      let stockStatus = "In Stock";
-
-      if (product.quantity === 0) stockStatus = "Out of Stock";
-      else if (product.quantity <= 10) stockStatus = "Low Stock";
+      const stockStatus = getStockStatus(product.quantity, product.reOrderLevel);
 
       return {
-        ...product._doc,
+        ...product,
         profit,
         stockStatus,
       };
@@ -108,8 +143,8 @@ const getStockStatus = (quantity) => {
     res.json({
       success: true,
       total: totalProducts,
-      pages: Math.ceil(totalProducts / limit),
-      currentPage: Number(page),
+      pages: Math.ceil(totalProducts / limitNumber),
+      currentPage: pageNumber,
       products: productsWithStatus,
     });
 
@@ -123,13 +158,14 @@ const getStockStatus = (quantity) => {
 export const getSingleProduct = async (req, res) => {
   try {
     const productId = req.params.id;
+    const userId = req.user._id;
 
     // Validate ID format (MongoDB ObjectId)
     if (!productId.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(400).json({ success: false, message: "Invalid product ID" });
     }
 
-    const product = await Products.findById(productId)
+    const product = await Products.findOne({ _id: productId, createdBy: userId })
       .populate("category", "name");
 
     if (!product) {
@@ -140,9 +176,7 @@ export const getSingleProduct = async (req, res) => {
     const profit = product.sellingPrice - product.costPrice;
 
     // Determine stock status
-    let stockStatus = "in stock";
-    if (product.quantity === 0) stockStatus = "out of stock";
-    else if (product.quantity <= 10) stockStatus = "low stock";
+    const stockStatus = getStockStatus(product.quantity, product.reOrderLevel);
 
     return res.status(200).json({
       success: true,

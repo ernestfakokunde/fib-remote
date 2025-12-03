@@ -2,33 +2,43 @@ import mongoose from "mongoose";
 
 const purchaseSchema = mongoose.Schema(
   {
-  product:{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:"Products",
-    required:true,
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Products",
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    costPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    totalCost: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    supplier: {
+      type: String,
+      default: "Unknown",
+      trim: true,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
-  quantity:{
-    type:Number,
-    required:true,
-  },
-  costPrice:{
-    type:Number,
-    required:true,
-  },
-  supplier:{
-    type: String,
-    default:"Unknown",
-  },
-  date:{
-    type:Date,
-    dafault: Date.now,
-  },
-  user:{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:"User",
-    required:true,
-  },
-}, { timestamps:true})
+  { timestamps: true }
+);
 
 const Purchase = mongoose.model("Purchase", purchaseSchema);
 

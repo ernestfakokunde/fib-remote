@@ -1,13 +1,17 @@
-import { createCategory,
-   updateCategory, 
-   deleteCategory } from "../controllers/categoryController.js";
-   import { Protect } from "../middlewares/Authentication.js";
-   import express from "express";
+import express from "express";
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  getCategories,
+} from "../controllers/categoryController.js";
+import { Protect } from "../middlewares/Authentication.js";
 
-   const router = express.Router();
+const router = express.Router();
 
-   router.post("/", Protect , createCategory);
-   router.patch("/:id",  Protect , updateCategory);
-   router.delete("/:id",Protect, deleteCategory);
+router.post("/", Protect, createCategory);
+router.get("/", Protect, getCategories);
+router.patch("/:id", Protect, updateCategory);
+router.delete("/:id", Protect, deleteCategory);
 
-    export default router;
+export default router;

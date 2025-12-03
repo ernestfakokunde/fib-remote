@@ -25,18 +25,18 @@ const Dashboard = () => {
                  />
 
                   <DashboardCard
-                  title='Total Stock Value'
-                  value={dashboardMetrics.totalProducts}
+                  title='Low Stock Items'
+                  value={dashboardMetrics.lowStockCount}
                   Icon={Wallet}
                  />
                   <DashboardCard
                   title='Total Sales Today'
-                  value={dashboardMetrics.totalProducts}
+                  value={dashboardMetrics.totalSalesToday}
                   Icon={ DollarSign}
                  />
                   <DashboardCard
                   title='Total Profit Today'
-                  value={dashboardMetrics.totalProducts}
+                  value={dashboardMetrics.totalProfitToday}
                   Icon={TrendingUp}
                  />
 
