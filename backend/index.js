@@ -9,6 +9,7 @@ import salesRoutes from './routes/salesRoute.js';
 import productRoutes from './routes/productRoute.js';
 import purchaseRoutes from './routes/purchaseRoute.js';
 import dashboardRoutes from './routes/dashboardRoute.js'
+import reportRoutes from './routes/reportRoute.js';
 
 //load environent variables
 dotenv.config();
@@ -40,7 +41,7 @@ app.use("/api/sales", salesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/api/dashboard", dashboardRoutes)
-
+app.use("/api/reports", reportRoutes)
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, ()=>{

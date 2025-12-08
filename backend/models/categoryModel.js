@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const categorySchema = mongoose.Schema(
   {
-    name: { type: String, required: true, unique: true, trim: true },
+    // remove global unique constraint so different users can use same category name
+    name: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -14,6 +15,9 @@ const categorySchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+// enforce uniqueness per user (a user cannot create duplicate category names, but different users may)
+categorySchema.index({ name: 1, createdBy: 1 }, { unique: true });
 
 const Category = mongoose.model("Category", categorySchema);
 

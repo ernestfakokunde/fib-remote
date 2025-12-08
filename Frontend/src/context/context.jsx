@@ -84,6 +84,14 @@ export const GlobalProvider = ({ children }) => {
     const getCategories = (params = {}) => API.get("/categories", { params });
     const createCategory = (data) => API.post("/categories", data);
 
+    // Sales API
+    const createSale = (data) => API.post('/sales/createSale', data);
+    const getSales = (params = {}) => API.get('/sales/getAllSales', { params });
+    const getSalesPerDay = (params = {}) => API.get('/sales/sales-per-day', { params });
+
+    //get Sales
+    
+
 
      const [dashboardMetrics, setDashboardMetrics] = useState({
     totalSalesToday: 0,
@@ -127,6 +135,9 @@ export const GlobalProvider = ({ children }) => {
     createProduct,
     getCategories,
     createCategory,
+    createSale,
+    	getSales,
+    	getSalesPerDay,
   };
 
   return (

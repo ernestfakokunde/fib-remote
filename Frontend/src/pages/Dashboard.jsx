@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useGlobalContext } from '../context/context'
 import DashboardCard from '../components/DashboardCard'
 import { Package,Wallet, DollarSign, ShoppingCart, AlertTriangle, TrendingUp } from "lucide-react";
+import SalesChart from '../components/SalesChart'
 
 const Dashboard = () => {
 
@@ -31,15 +32,19 @@ const Dashboard = () => {
                  />
                   <DashboardCard
                   title='Total Sales Today'
-                  value={dashboardMetrics.totalSalesToday}
+                  value={`$${dashboardMetrics.totalSalesToday}`}
                   Icon={ DollarSign}
                  />
                   <DashboardCard
                   title='Total Profit Today'
-                  value={dashboardMetrics.totalProfitToday}
+                  value={`$${dashboardMetrics.totalProfitToday}`}
                   Icon={TrendingUp}
                  />
 
+                </div>
+                
+                <div className='p-5 grid lg:grid-cols-2 md:grid-cols-2'>
+                  <SalesChart />
                 </div>
              </div>
   ) }

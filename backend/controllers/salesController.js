@@ -68,12 +68,36 @@ export const createSale = async (req, res) => {
 export const getAllSales = async (req, res) => {
   try {
     const userId = req.user._id;
-    const sales = await Sales.find({ createdBy: userId })
-      .populate("product", "name")
-      .sort({ createdAt: -1 });
+    const { page = 1, limit = 100, startDate, endDate } = req.query;
+
+    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
+    const limitNumber = Math.max(1, Math.min(1000, parseInt(limit, 10) || 100));
+
+    const filter = { createdBy: userId };
+
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate + 'T00:00:00.000Z');
+      if (endDate) filter.date.$lte = new Date(endDate + 'T23:59:59.999Z');
+    }
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const [total, sales] = await Promise.all([
+      Sales.countDocuments(filter),
+      Sales.find(filter)
+        .populate('product', 'name sku')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNumber)
+        .lean(),
+    ]);
+
     res.status(200).json({
       success: true,
-      totalSales: sales.length,
+      total,
+      pages: Math.ceil(total / limitNumber),
+      currentPage: pageNumber,
       sales,
     });
   } catch (error) {
@@ -83,5 +107,47 @@ export const getAllSales = async (req, res) => {
       message: "Failed to load sales data",
       error: error.message,
     });
+  }
+};
+ 
+export const getSalesPerDay = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { startDate, endDate } = req.query;
+
+    // match against the correct createdBy field and prepare date range if provided
+    let match = { createdBy: userId };
+
+    if (startDate || endDate) {
+      match.date = {};
+      if (startDate) match.date.$gte = new Date(startDate + 'T00:00:00.000Z');
+      if (endDate) match.date.$lte = new Date(endDate + 'T23:59:59.999Z');
+    }
+
+    const pipeline = [
+      { $match: match },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          totalSales: { $sum: '$totalRevenue' }
+        }
+      },
+      {
+        $project: {
+          date: '$_id',
+          totalSales: 1,
+          _id: 0
+        }
+      },
+      { $sort: { date: 1 } }
+    ];
+
+    const data = await Sales.aggregate(pipeline);
+
+    res.json({ success: true, data });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: 'Failed to fetch sales per day' });
   }
 };

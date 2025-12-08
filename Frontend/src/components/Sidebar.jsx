@@ -18,8 +18,16 @@ const Sidebar = () => {
   return (
     <>
       {/* TOP NAV HAMBURGER (visible only on mobile) */}
-      <div className="lg:hidden p-4 shadow-md flex items-start gap-4 bg-white text-black">
+      <div className="lg:hidden p-4 shadow-md flex-col flex items-start gap-4 bg-white text-black">
         <Menu size={28} className="cursor-pointer" onClick={() => setOpen(!open)} />
+          <LayoutDashboard size={28} className="mt-6"/>
+          <Package size={28} className="mt-4"/>
+          <ArrowDownCircle size={28} className="mt-4"/>
+          <ArrowUpCircle size={28} className="mt-4"/>
+          <DollarSign size={28} className="mt-4"/>
+          <BarChart size={28} className="mt-4"/>
+          <Settings size={28} className="mt-4"/>
+          
       </div>
 
       {/* SIDEBAR */}

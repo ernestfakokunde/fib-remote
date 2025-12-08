@@ -77,6 +77,12 @@ export const createProduct = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    // Handle duplicate key error from MongoDB (e.g., stray unique index)
+    if (error && error.code === 11000) {
+      const dupKey = Object.keys(error.keyValue || {})[0];
+      const dupVal = error.keyValue ? error.keyValue[dupKey] : undefined;
+      return res.status(409).json({ message: `${dupKey || 'Field'} already exists`, details: { [dupKey]: dupVal } });
+    }
     res.status(500).json({ message: "Server error product creation failed try again" });
   }
 };
