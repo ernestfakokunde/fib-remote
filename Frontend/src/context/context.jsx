@@ -12,6 +12,9 @@ export const useGlobalContext = () => {
 export const GlobalProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Start as true to prevent UI flicker
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const toggleSidebar = () => setSidebarOpen((s) => !s);
 
   const navigate = useNavigate();
 
@@ -88,8 +91,13 @@ export const GlobalProvider = ({ children }) => {
     const createSale = (data) => API.post('/sales/createSale', data);
     const getSales = (params = {}) => API.get('/sales/getAllSales', { params });
     const getSalesPerDay = (params = {}) => API.get('/sales/sales-per-day', { params });
+    const getMonthlyProfit = (params = {}) => API.get('/analytics/monthly-profit', { params });
+    // Purchases API
+    const createPurchase = (data) => API.post('/purchases/addPurchase', data);
+    const getPurchases = (params = {}) => API.get('/purchases/getAllPurchases', { params });
+    const getProductsDropdown = (params = {}) => API.get('/purchases/getProductsDropdown', { params });
 
-    //get Sales
+    
     
 
 
@@ -138,6 +146,13 @@ export const GlobalProvider = ({ children }) => {
     createSale,
     	getSales,
     	getSalesPerDay,
+    // Purchases API
+    createPurchase,
+    getPurchases,
+    getProductsDropdown,
+    // sidebar controls
+    sidebarOpen,
+    toggleSidebar,
   };
 
   return (

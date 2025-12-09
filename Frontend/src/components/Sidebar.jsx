@@ -1,6 +1,6 @@
 // src/components/Sidebar.jsx
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
+import { useGlobalContext } from '../context/context'
 import {
   LayoutDashboard,
   Package,
@@ -13,30 +13,14 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
-  const [open, setOpen] = useState(true);
+  const { sidebarOpen, toggleSidebar } = useGlobalContext();
 
   return (
     <>
-      {/* TOP NAV HAMBURGER (visible only on mobile) */}
-      <div className="lg:hidden p-4 shadow-md flex-col flex items-start gap-4 bg-white text-black">
-        <Menu size={28} className="cursor-pointer" onClick={() => setOpen(!open)} />
-          <LayoutDashboard size={28} className="mt-6"/>
-          <Package size={28} className="mt-4"/>
-          <ArrowDownCircle size={28} className="mt-4"/>
-          <ArrowUpCircle size={28} className="mt-4"/>
-          <DollarSign size={28} className="mt-4"/>
-          <BarChart size={28} className="mt-4"/>
-          <Settings size={28} className="mt-4"/>
-          
-      </div>
-
       {/* SIDEBAR */}
-      <div
-        className={`bg-white h-screen shadow-md fixed top-0 left-0 z-50 w-64 p-5 pt-8 transition-transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
-      >
+      <div className={`bg-white h-screen shadow-md fixed top-0 left-0 z-50 w-64 p-5 pt-8 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0 lg:translate-x-0' : '-translate-x-full lg:-translate-x-full'}`}>
         {/* Brand */}
-        <div className="text-3xl cursor-pointer font-bold mb-4" onClick={() => setOpen(!open)}>x</div>
+        <div className="text-3xl cursor-pointer font-bold mb-4" onClick={() => toggleSidebar()}>x</div>
         <h1 className="text-xl font-bold  mb-10">Inventory Pro</h1>
 
         {/* MENU ITEMS */}

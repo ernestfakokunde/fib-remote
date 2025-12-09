@@ -57,17 +57,88 @@ export const createPurchase = async (req, res) => {
 export const getAllPurchases = async (req, res) => {
   try {
     const userId = req.user._id;
-    const purchases = await Purchase.find({ createdBy: userId })
-      .populate("product", "name category quantity sellingPrice")
-      .sort({ date: -1 });
+      //set pagination values
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      //date filtering
+      const { filter, start, end} = req.query;
+      let dateQuery = {};
+
+      const now = new Date();
+
+      if(filter === "today"){
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        dateQuery = { $gte: startOfDay, $lte: now };
+      }
+
+      if(filter === "yesterday"){
+        const startOfYesterday = new Date();
+        startOfYesterday.setDate(now.getDate() - 1);
+        startOfYesterday.setHours(0, 0, 0, 0);
+
+        const endOfYesterday = new Date();
+        endOfYesterday.setDate(now.getDate() - 1);
+        endOfYesterday.setHours(23, 59, 59, 999);
+
+        dateQuery ={ $gte: startOfYesterday, $lte: endOfYesterday };
+      }
+
+      if(filter === "last7days"){
+        const last7days = new Date();
+        last7days.setDate(now.getDate() - 7);
+
+        dateQuery = { $gte: last7days};
+      }
+
+      //custom date range
+      if(start && end){
+        dateQuery = {
+        $gte: new Date(start),
+        $lte: new Date(end),
+        }
+      }
+
+      //final mongoDb query 
+      const query = {
+        createdBy: userId,
+        ...(Object.keys(dateQuery).length && { date: dateQuery }),
+      };
+
+        const purchases = await Purchase.find(query)
+        .populate("product", "name category quantity sellingPrice")
+        .sort({ date: -1})
+        .skip(skip)
+        .limit(limit)
+
+        const total = await Purchase.countDocuments(query);
 
     res.json({
       success: true,
-      count: purchases.length,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalPurchases: total,
       purchases,
+      
     });
-  } catch (error) {
+  } catch (error) { 
     console.error("Error fetching purchases:", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const getProductsDropdown = async (req, res)=>{
+  try {
+    const userId = req.user._id;
+    const products = await Products.find({ createdBy: userId }).select("_id name quantity")
+
+    res.json({ success: true, products });
+
+  } catch (error) {
+    res.status(500).json({ message: "Server Error Failed to load products" });
+  }
+}
+ 

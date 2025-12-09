@@ -1,0 +1,28 @@
+import React from 'react'
+
+const currency = (v) => {
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+  } catch (e) {
+    return `$${Number(v || 0).toFixed(2)}`;
+  }
+}
+
+const PurchaseSummary = ({ totalValue = 0, transactions = 0 }) => {
+  return (
+    <div className='bg-white rounded-lg p-6 shadow-sm mb-6'>
+      <div className='flex items-center justify-between gap-4'>
+        <div>
+          <div className='text-sm text-gray-500'>Total Purchase Value</div>
+          <div className='text-2xl font-semibold text-gray-900 mt-2'>{currency(totalValue)}</div>
+        </div>
+        <div className='text-right'>
+          <div className='text-sm text-gray-500'>Total Transactions</div>
+          <div className='text-xl font-medium text-gray-900 mt-2'>{transactions}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default PurchaseSummary
