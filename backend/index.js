@@ -22,10 +22,32 @@ connectDB();
 const app = express();
 
 //middlewares
-app.use(cors());
+// Update your CORS configuration like this:
+const allowedOrigins = [
+  'http://localhost:5173', // Local development
+  process.env.FRONTEND_URL, // Your production frontend
+  // Remove the line below in production unless needed
+  // 'https://yourfrontend.onrender.com' // If frontend also on Render
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // If using cookies/sessions
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app
 
 //Error handling for middleware 
 app.use((err, req, res, next) => {
@@ -33,6 +55,15 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error, Route not found",
   });
 })
+
+// Add this before other routes
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
 
   //routes
 app.use("/api/users", userRoutes);
@@ -44,6 +75,8 @@ app.use("/api/purchases", purchaseRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/reports", reportRoutes)
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, ()=>{
