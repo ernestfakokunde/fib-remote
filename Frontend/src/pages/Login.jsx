@@ -79,9 +79,10 @@ const Login = () => {
                <button
                onClick={handleSubmit}
                  type="submit"
-                 className="w-full mt-2 py-3 bg-[#1A1A2E] text-white font-medium rounded-lg hover:bg-black transition"
+                 disabled={loading}
+                 className="w-full mt-2 py-3 bg-[#1A1A2E] text-white font-medium rounded-lg hover:bg-black transition disabled:bg-gray-400"
                >
-                 Log In
+                 {loading ? 'Logging in...' : 'Log In'}
                </button>
              </form>
      
