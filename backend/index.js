@@ -24,6 +24,7 @@ const app = express();
 //middlewares
 // Update your CORS configuration like this:
 const allowedOrigins = [
+  'spectra-invents.vercel.app',
   'http://localhost:5173', // Local development
   process.env.FRONTEND_URL, // Your production frontend
   // Remove the line below in production unless needed
