@@ -39,7 +39,7 @@ const Login = () => {
               <div className="bg-white shadow-xl rounded-3xl p-8 sm:p-10 max-w-md w-full border border-gray-100">
              
              {/* Logo Placeholder */}
-            <img src={logo} className='w-19 h-19' alt="" />
+            <img src={logo} className='w-23 h-23 justify-center text-center' alt="" />
      
              <h2 className="text-2xl font-semibold text-center mt-4"> Log back in</h2>
              <p className="text-gray-500 text-center text-sm mb-8">
