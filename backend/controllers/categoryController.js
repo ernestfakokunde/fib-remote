@@ -24,6 +24,7 @@ export const createCategory = async (req, res) => {
     const category = new Category({
       name: normalizedName,
       description: description ? description.trim() : "",
+      color: req.body.color || '#a3a3a3',
       createdBy: userId,
     });
 
@@ -77,10 +78,11 @@ export const updateCategory = async (req, res) => {
       return res.status(400).json({ message: "Invalid category id" });
     }
 
-    const { name, description } = req.body;
+    const { name, description, color } = req.body;
     const updates = {};
     if (name && name.trim()) updates.name = name.trim();
     if (description !== undefined) updates.description = description.trim();
+    if (color) updates.color = color;
 
     if (updates.name) {
       const existing = await Category.findOne({

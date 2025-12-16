@@ -4,6 +4,7 @@ import { Protect } from '../middlewares/Authentication.js';
 
 const router = express.Router();
 
-router.get('/analytics',Protect, getSalesAnalytics);
-router.get('/analytics/monthly-profit', Protect, getMonthlyProfit);
+router.get('/', Protect, getSalesAnalytics);
+router.get('/monthly-profit', Protect, getMonthlyProfit);
+
 export default router;

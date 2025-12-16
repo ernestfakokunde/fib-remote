@@ -5,6 +5,7 @@ const categorySchema = mongoose.Schema(
     // remove global unique constraint so different users can use same category name
     name: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
+    color: { type: String, default: '#a3a3a3' },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

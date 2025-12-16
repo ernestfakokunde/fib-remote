@@ -10,6 +10,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js';
 
 ChartJS.register(
@@ -19,7 +20,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 const SalesChart = ({ startDate, endDate }) => {
@@ -38,7 +40,12 @@ const SalesChart = ({ startDate, endDate }) => {
       const data = res.data?.data || [];
 
       // backend returns array of { date: 'YYYY-MM-DD', totalSales }
-      const sorted = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+      let sorted = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // On the dashboard (no explicit start/end), cap to last 7 days
+      if (!startDate && !endDate && sorted.length > 7) {
+        sorted = sorted.slice(-7);
+      }
 
       // use short weekday labels for compact display (Mon, Tue...)
       const formattedLabels = sorted.map((d) => {
@@ -100,7 +107,7 @@ const SalesChart = ({ startDate, endDate }) => {
         callbacks: {
           label: function(context) {
             const v = context.parsed.y || 0;
-            return '$' + Number(v).toLocaleString();
+            return 'NGN ' + Number(v).toLocaleString();
           }
         }
       }
@@ -115,7 +122,7 @@ const SalesChart = ({ startDate, endDate }) => {
         grid: { color: 'rgba(15,23,42,0.05)' },
         ticks: {
           callback: function(value) {
-            return '$' + Number(value).toLocaleString();
+            return 'NGN ' + Number(value).toLocaleString();
           },
           color: '#6b7280'
         }

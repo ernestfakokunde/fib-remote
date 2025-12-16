@@ -108,13 +108,26 @@ export const getAllPurchases = async (req, res) => {
         ...(Object.keys(dateQuery).length && { date: dateQuery }),
       };
 
-        const purchases = await Purchase.find(query)
-        .populate("product", "name category quantity sellingPrice")
-        .sort({ date: -1})
-        .skip(skip)
-        .limit(limit)
+      const [purchases, total, totalsAgg] = await Promise.all([
+        Purchase.find(query)
+          .populate("product", "name category quantity sellingPrice")
+          .sort({ date: -1})
+          .skip(skip)
+          .limit(limit),
+        Purchase.countDocuments(query),
+        // aggregate overall total cost for the current filter (ignores pagination)
+        Purchase.aggregate([
+          { $match: query },
+          {
+            $group: {
+              _id: null,
+              totalCost: { $sum: "$totalCost" },
+            },
+          },
+        ]),
+      ]);
 
-        const total = await Purchase.countDocuments(query);
+      const totalsRow = totalsAgg[0] || { totalCost: 0 };
 
     res.json({
       success: true,
@@ -122,7 +135,8 @@ export const getAllPurchases = async (req, res) => {
       totalPages: Math.ceil(total / limit),
       totalPurchases: total,
       purchases,
-      
+      // overall value of purchases in the filtered window
+      totalValue: totalsRow.totalCost || 0,
     });
   } catch (error) { 
     console.error("Error fetching purchases:", error);

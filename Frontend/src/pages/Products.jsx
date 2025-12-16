@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Plus, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "../context/context";
+import Modal from '../components/Modal'
 
 const PAGE_SIZE = 10;
 
@@ -307,10 +308,10 @@ export default function Products() {
                         <td className="py-4 px-4 text-sm text-gray-700">{product.sku}</td>
                         <td className="py-4 px-4 text-sm text-gray-700">{categoryLabel}</td>
                         <td className="py-4 px-4 text-sm text-gray-700">{product.supplier || "Unknown"}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">${formatCurrency(product.costPrice)}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">${formatCurrency(product.sellingPrice)}</td>
+                        <td className="py-4 px-4 text-sm text-gray-700">NGN {formatCurrency(product.costPrice)}</td>
+                        <td className="py-4 px-4 text-sm text-gray-700">NGN {formatCurrency(product.sellingPrice)}</td>
                         <td className="py-4 px-4 text-sm text-gray-700">{quantity}</td>
-                        <td className="py-4 px-4 text-sm font-medium text-gray-900">${formatCurrency(stockValue)}</td>
+                        <td className="py-4 px-4 text-sm font-medium text-gray-900">NGN {formatCurrency(stockValue)}</td>
                         <td className="py-4 px-4">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
                             {derivedStatus}
@@ -381,8 +382,8 @@ export default function Products() {
                   <div><span className="text-gray-500">Category</span><div className="text-gray-900">{categoryLabel}</div></div>
                   <div><span className="text-gray-500">Supplier</span><div className="text-gray-900">{product.supplier || 'Unknown'}</div></div>
                   <div><span className="text-gray-500">Quantity</span><div className="text-gray-900">{quantity}</div></div>
-                  <div><span className="text-gray-500">Cost</span><div className="text-gray-900">${formatCurrency(product.costPrice)}</div></div>
-                  <div><span className="text-gray-500">Stock Value</span><div className="text-gray-900">${formatCurrency(stockValue)}</div></div>
+                  <div><span className="text-gray-500">Cost</span><div className="text-gray-900">NGN {formatCurrency(product.costPrice)}</div></div>
+                  <div><span className="text-gray-500">Stock Value</span><div className="text-gray-900">NGN {formatCurrency(stockValue)}</div></div>
                 </div>
               </div>
             );
@@ -391,8 +392,8 @@ export default function Products() {
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-start justify-center pt-10 z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl mx-4 sm:mx-0 max-h-[85vh] overflow-y-auto">
+        <Modal onClose={() => setShowAddModal(false)} widthClass="max-w-2xl" topOffset="pt-10">
+          <div className="bg-white rounded-xl shadow-lg w-full max-h-[85vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Add Product</h2>
@@ -534,7 +535,7 @@ export default function Products() {
               </form>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

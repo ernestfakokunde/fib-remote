@@ -1,5 +1,6 @@
 import React from 'react'
 import Sidebar from './components/Sidebar'
+import TopBar from './components/TopBar'
 import { Outlet } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { useGlobalContext } from './context/context'
@@ -14,8 +15,11 @@ const Layout = () => {
         </button>
         <Sidebar/>
         {/**main content here */}
-        <main className={`flex-1 p-6 bg-gray-100 min-h-screen ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'}`}>
-          <Outlet />
+        <main className={`flex-1 bg-gray-100 min-h-screen ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'}`}>
+          <TopBar />
+          <div className="px-6 pb-6">
+            <Outlet />
+          </div>
         </main>
     </div>
   )

@@ -80,6 +80,20 @@ export const GlobalProvider = ({ children }) => {
     navigate('/login');
   };
 
+  // Settings APIs
+  const updateProfile = async (data) => {
+    const res = await API.put('/users/profile', data);
+    const updatedUser = res.data?.user;
+    if (updatedUser) {
+      setUser(updatedUser);
+    }
+    return res;
+  };
+
+  const changePassword = async (data) => {
+    return API.put('/users/change-password', data);
+  };
+
     //Dashboard Data one by one
 
     const getProducts = (params = {}) => API.get("/products", { params });
@@ -92,10 +106,16 @@ export const GlobalProvider = ({ children }) => {
     const getSales = (params = {}) => API.get('/sales/getAllSales', { params });
     const getSalesPerDay = (params = {}) => API.get('/sales/sales-per-day', { params });
     const getMonthlyProfit = (params = {}) => API.get('/analytics/monthly-profit', { params });
+    const getReports = (params = {}) => API.get('/reports', { params });
     // Purchases API
     const createPurchase = (data) => API.post('/purchases/addPurchase', data);
     const getPurchases = (params = {}) => API.get('/purchases/getAllPurchases', { params });
     const getProductsDropdown = (params = {}) => API.get('/purchases/getProductsDropdown', { params });
+    // Expenses API
+    const createExpense = (data) => API.post('/expenses/addExpense', data);
+    const getExpenses = (params = {}) => API.get('/expenses/getAllExpenses', { params });
+    const deleteExpense = (id) => API.delete(`/expenses/delete/${id}`);
+    const getExpensesSummary = (params = {}) => API.get('/expenses/summary', { params });
 
     
     
@@ -137,6 +157,8 @@ export const GlobalProvider = ({ children }) => {
     Register,
     Login,
     logout,
+    updateProfile,
+    changePassword,
     dashboardMetrics,
     fetchDashboardMetrics,
     getProducts,
@@ -146,6 +168,13 @@ export const GlobalProvider = ({ children }) => {
     createSale,
     	getSales,
     	getSalesPerDay,
+    getMonthlyProfit,
+    getReports,
+    // Expenses
+    createExpense,
+    getExpenses,
+    deleteExpense,
+    getExpensesSummary,
     // Purchases API
     createPurchase,
     getPurchases,

@@ -11,6 +11,7 @@ import { CiDollar } from "react-icons/ci";
 import ActionCard from '../components/ActionCard'
 import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency, formatNumber } from '../utils/format';
 
 const Dashboard = () => {
 
@@ -30,24 +31,24 @@ const Dashboard = () => {
             <div className='grid lg:grid-cols-4 md:grid-cols-2 p-5 gap-4'>
                  <DashboardCard
                   title='Total Products'
-                  value={dashboardMetrics.totalProducts}
+                  value={formatNumber(dashboardMetrics.totalProducts)}
                   trend="+12% from last month"
                   Icon={Package}
                  />
 
                   <DashboardCard
                   title='Low Stock Items'
-                  value={dashboardMetrics.lowStockCount}
+                  value={formatNumber(dashboardMetrics.lowStockCount)}
                   Icon={Wallet}
                  />
                   <DashboardCard
                   title='Total Sales Today'
-                  value={`$${dashboardMetrics.totalSalesToday}`}
+                  value={formatCurrency(dashboardMetrics.totalSalesToday)}
                   Icon={ DollarSign}
                  />
                   <DashboardCard
                   title='Total Profit Today'
-                  value={`$${dashboardMetrics.totalProfitToday}`}
+                  value={formatCurrency(dashboardMetrics.totalProfitToday)}
                   Icon={TrendingUp}
                  />
 

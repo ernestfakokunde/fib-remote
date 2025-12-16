@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useGlobalContext } from '../context/context'
+import Modal from '../components/Modal'
 import { Loader2, Plus } from 'lucide-react'
 import PurchaseItem from '../components/PurchaseItem'
 import PurchaseSummary from '../components/PurchaseSummary'
@@ -21,6 +22,7 @@ const StockIn = () => {
 
   const [form, setForm] = useState({ productId: '', quantity: 1, costPrice: '', supplier: '', date: '' });
   const [isSaving, setIsSaving] = useState(false);
+  const [summary, setSummary] = useState({ totalValue: 0, transactions: 0 });
 
   const fetchProductsDropdown = async () => {
     try {
@@ -54,7 +56,13 @@ const StockIn = () => {
       setPurchases(Array.isArray(data.purchases) ? data.purchases : []);
       setPages(data.totalPages || 1);
       setPage(data.currentPage || p);
-      setTotalCount(data.total || data.totalCount || (Array.isArray(data.purchases) ? data.purchases.length : 0));
+      const total = data.totalPurchases || data.total || data.totalCount || (Array.isArray(data.purchases) ? data.purchases.length : 0);
+      setTotalCount(total);
+      // overall value for the current filter (independent of pagination)
+      setSummary({
+        totalValue: Number(data.totalValue || 0),
+        transactions: total,
+      });
     } catch (err) {
       console.error(err);
       toast.error('Failed to load purchases');
@@ -120,7 +128,10 @@ const StockIn = () => {
           </div>
         </div>
 
-        <PurchaseSummary totalValue={purchases.reduce((s,p)=> s + (Number(p.totalCost) || (Number(p.quantity||0) * Number(p.costPrice||0)) || 0), 0)} transactions={totalCount} />
+        <PurchaseSummary
+          totalValue={Number(summary.totalValue || 0)}
+          transactions={summary.transactions}
+        />
 
         <div className='mb-4 flex items-center gap-2'>
           <button onClick={() => { setFilterMode('today'); setPage(1); }} className={`px-3 py-1 rounded ${filterMode==='today' ? 'bg-black text-white':'border'}`}>Today</button>
@@ -166,8 +177,8 @@ const StockIn = () => {
       </div>
 
       {showModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-40 flex items-start justify-center pt-10 z-50'>
-          <div className='bg-white rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-0 max-h-[85vh] overflow-y-auto'>
+        <Modal onClose={() => setShowModal(false)} widthClass="max-w-md" topOffset="pt-10">
+          <div className='bg-white rounded-xl shadow-lg w-full max-h-[85vh] overflow-y-auto'>
             <div className='p-6'>
               <div className='flex items-center justify-between mb-4'>
                 <h2 className='text-xl font-bold'>Record Purchase</h2>
@@ -202,7 +213,7 @@ const StockIn = () => {
               </form>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
     </div>

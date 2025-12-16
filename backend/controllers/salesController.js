@@ -83,7 +83,7 @@ export const getAllSales = async (req, res) => {
 
     const skip = (pageNumber - 1) * limitNumber;
 
-    const [total, sales] = await Promise.all([
+    const [total, sales, totalsAgg] = await Promise.all([
       Sales.countDocuments(filter),
       Sales.find(filter)
         .populate('product', 'name sku')
@@ -91,7 +91,20 @@ export const getAllSales = async (req, res) => {
         .skip(skip)
         .limit(limitNumber)
         .lean(),
+      // aggregate overall revenue & profit for the current filter (ignores pagination)
+      Sales.aggregate([
+        { $match: filter },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$totalRevenue' },
+            totalProfit: { $sum: '$profit' },
+          },
+        },
+      ]),
     ]);
+
+    const totalsRow = totalsAgg[0] || { totalRevenue: 0, totalProfit: 0 };
 
     res.status(200).json({
       success: true,
@@ -99,6 +112,8 @@ export const getAllSales = async (req, res) => {
       pages: Math.ceil(total / limitNumber),
       currentPage: pageNumber,
       sales,
+      totalRevenue: totalsRow.totalRevenue || 0,
+      totalProfit: totalsRow.totalProfit || 0,
     });
   } catch (error) {
     console.error(error);

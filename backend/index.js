@@ -8,6 +8,7 @@ import analyticsRoutes from './routes/analyticsRoute.js';
 import salesRoutes from './routes/salesRoute.js';
 import productRoutes from './routes/productRoute.js';
 import purchaseRoutes from './routes/purchaseRoute.js';
+import expenseRoutes from './routes/expenseRoute.js';
 import dashboardRoutes from './routes/dashboardRoute.js'
 import reportRoutes from './routes/reportRoute.js';
 
@@ -40,6 +41,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchases", purchaseRoutes);
+app.use("/api/expenses", expenseRoutes);
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/reports", reportRoutes)
 

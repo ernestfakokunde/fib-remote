@@ -58,7 +58,7 @@ const MonthlyProfitChart = ({ months = 6 }) => {
         callbacks: {
           label: function(context) {
             const v = context.parsed.y || 0;
-            return '$' + Number(v).toLocaleString();
+            return 'NGN ' + Number(v).toLocaleString();
           }
         }
       }
@@ -69,7 +69,7 @@ const MonthlyProfitChart = ({ months = 6 }) => {
         beginAtZero: true,
         grid: { color: 'rgba(15,23,42,0.05)' },
         ticks: {
-          callback: function(value) { return '$' + Number(value).toLocaleString(); },
+          callback: function(value) { return 'NGN ' + Number(value).toLocaleString(); },
           color: '#6b7280'
         }
       }

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import SaleCard from '../components/SaleCard'
 import { useGlobalContext } from '../context/context'
+import Modal from '../components/Modal'
 import { Loader2, Plus } from 'lucide-react'
 import { toast } from 'react-toastify'
+import { formatCurrency, formatNumber } from '../utils/format';
 
 const StockOut = () => {
   const { getSales, createSale, getProducts } = useGlobalContext();
@@ -19,6 +21,7 @@ const StockOut = () => {
 
   const [form, setForm] = useState({ productId: '', quantity: 1, sellingPrice: '', date: '', customer: '' });
   const [isSaving, setIsSaving] = useState(false);
+  const [totals, setTotals] = useState({ totalRevenue: 0, totalProfit: 0, totalSales: 0 });
 
   const fetchSales = async (p = 1) => {
     setIsLoading(true);
@@ -52,6 +55,13 @@ const StockOut = () => {
       setSales(Array.isArray(data.sales) ? data.sales : []);
       setPages(data.pages || 1);
       setPage(data.currentPage || p);
+
+      // overall totals for the current filter (independent of pagination)
+      setTotals({
+        totalRevenue: Number(data.totalRevenue || 0),
+        totalProfit: Number(data.totalProfit || 0),
+        totalSales: Number(data.total || data.totalSales || 0),
+      });
     } catch (err) {
       console.error(err);
       toast.error('Failed to load sales');
@@ -121,9 +131,10 @@ const StockOut = () => {
     }
   }
 
-  // metrics
-  const totalRevenue = sales.reduce((acc, s) => acc + (Number(s.totalRevenue) || 0), 0);
-  const totalProfit = sales.reduce((acc, s) => acc + (Number(s.profit) || 0), 0);
+  // metrics (coming from backend summary so they don't change when paginating)
+  const totalRevenue = totals.totalRevenue;
+  const totalProfit = totals.totalProfit;
+  const totalSales = totals.totalSales;
 
   return (
     <div className='min-h-screen bg-gray-50 overflow-x-hidden'> 
@@ -142,15 +153,15 @@ const StockOut = () => {
             <div className='mt-3 grid lg:grid-cols-3 gap-4 md:grid-cols-2'>
                 <SaleCard
                   title={"Total Revenue"}
-                  value={`$${totalRevenue.toFixed(2)}`}
+                  value={formatCurrency(totalRevenue)}
                 />
                 <SaleCard
                   title={"Total Profit"}
-                  value={`$${totalProfit.toFixed(2)}`}
+                  value={formatCurrency(totalProfit)}
                 />
                 <SaleCard
                   title={"Total Sales"}
-                  value={`${sales.length}`}
+                  value={formatNumber(totalSales)}
                 />
             </div>
 
@@ -190,7 +201,7 @@ const StockOut = () => {
                       <div>
                         <div className='font-medium'>{s.product?.name || 'Product'}</div>
                         <div className='text-sm font-bold text-gray-500'>
-                          Qty: {s.quantity} • Revenue: {'$' + Number(s.totalRevenue).toFixed(2)} • selling-Price: {'$' + (s.sellingPrice ?? '')}
+                          Qty: {formatNumber(s.quantity)} • Revenue: {formatCurrency(s.totalRevenue)} • Selling Price: {formatCurrency(s.sellingPrice)}
                         </div>
                       </div>
                       <div className='text-sm text-gray-500'>{new Date(s.date || s.createdAt).toLocaleString()}</div>
@@ -208,8 +219,8 @@ const StockOut = () => {
         </div>
 
         {showModal && (
-          <div className='fixed inset-0 bg-black bg-opacity-40 flex items-start justify-center pt-10 z-50'>
-            <div className='bg-white rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-0 max-h-[85vh] overflow-y-auto'>
+          <Modal onClose={() => setShowModal(false)} widthClass="max-w-md" topOffset="pt-10">
+            <div className='bg-white rounded-xl shadow-lg w-full max-h-[85vh] overflow-y-auto'>
               <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
                   <h2 className='text-xl font-bold'>Record Sale</h2>
@@ -230,7 +241,7 @@ const StockOut = () => {
                   </div>
                   <div className='grid grid-cols-2 gap-2'>
                     <div>
-                      <label className='block text-sm text-gray-700 mb-1'>Quantity</label>
+                      <label className='block text-sm text-gray700 mb-1'>Quantity</label>
                       <input type='number' min={1} className='w-full px-3 py-2 border rounded' value={form.quantity} onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))} />
                     </div>
                     <div>
@@ -249,7 +260,7 @@ const StockOut = () => {
                 </form>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
     </div>
     </div>

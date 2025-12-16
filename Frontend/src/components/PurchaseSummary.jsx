@@ -1,11 +1,8 @@
 import React from 'react'
 
 const currency = (v) => {
-  try {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
-  } catch (e) {
-    return `$${Number(v || 0).toFixed(2)}`;
-  }
+  const amount = Number(v || 0);
+  return `NGN ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 const PurchaseSummary = ({ totalValue = 0, transactions = 0 }) => {
