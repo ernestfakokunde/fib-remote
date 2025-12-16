@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context.jsx';
+import logo from '../assets/logo.png';
 
 const Register = () => {
   const { Register, loading } = useGlobalContext();
@@ -54,7 +55,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="bg-white shadow-xl rounded-3xl p-8 sm:p-10 max-w-md w-full border border-gray-100">
-        <div className="w-16 h-16 mx-auto bg-blue-500 rounded-2xl"></div>
+         <img src={logo} className='w-19 h-19' alt="" />
 
         <h2 className="text-2xl font-semibold text-center mt-4">Create Account</h2>
         <p className="text-gray-500 text-center text-sm mb-8">
