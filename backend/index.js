@@ -77,6 +77,7 @@ app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/reports", reportRoutes)
 
 app.get('/', (req, res) => {
+   console.log("App is running")
   res.status(200).json({
     message: 'Backend API is running! 🚀',
     version: '1.0.0',
