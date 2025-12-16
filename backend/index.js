@@ -76,6 +76,27 @@ app.use("/api/expenses", expenseRoutes);
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/reports", reportRoutes)
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Backend API is running! 🚀',
+    version: '1.0.0',
+    endpoints: [
+      '/api/users',
+      '/api/categories',
+      '/api/products',
+      '/api/sales',
+      '/api/purchases',
+      '/api/expenses',
+      '/api/dashboard',
+      '/api/reports',
+      '/api/analytics',
+      '/health'
+    ],
+    documentation: 'Add your API docs link here',
+    timestamp: new Date().toISOString()
+  });
+});
+
 
 
 const PORT = process.env.PORT || 5000;
