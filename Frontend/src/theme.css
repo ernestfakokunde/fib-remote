@@ -1,0 +1,73 @@
+:root {
+  --bg: #f3f4f6;
+  --surface: #f8fafc;
+  --card: #ffffff;
+  --topbar: #eff6ff;
+  --sidebar: #ffffff;
+  --border: #e5e7eb;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --primary: #3b82f6;
+  --button: #111827;
+  --shadow: 0 10px 25px -10px rgba(15, 23, 42, 0.15);
+}
+
+/* Blue theme uses a deeper, cooler palette */
+.theme-blue {
+  --bg: #071724;
+  --surface: rgba(15, 23, 42, 0.70);
+  --card: rgba(15, 23, 42, 0.76);
+  --topbar: rgba(15, 23, 42, 0.68);
+  --sidebar: rgba(15, 23, 42, 0.88);
+  --border: rgba(255, 255, 255, 0.12);
+  --text: rgba(248, 250, 252, 0.95);
+  --muted: rgba(248, 250, 252, 0.6);
+  --primary: #60a5fa;
+  --button: #e2e8f0;
+  --shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.65);
+}
+
+/* White theme is the default light theme */
+.theme-white {
+  --bg: #f3f4f6;
+  --surface: #f8fafc;
+  --card: #ffffff;
+  --topbar: #eff6ff;
+  --sidebar: #ffffff;
+  --border: #e5e7eb;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --primary: #3b82f6;
+  --button: #111827;
+  --shadow: 0 10px 25px -10px rgba(15, 23, 42, 0.15);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Provide theme-aware helpers */
+.btn-theme {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-theme-alt {
+  background-color: var(--button);
+  color: white;
+}
+
+/* Override common Tailwind utility colors to make the theme consistent */
+.theme-blue .bg-white { background-color: rgba(255, 255, 255, 0.08) !important; }
+.theme-blue .bg-gray-50 { background-color: rgba(255, 255, 255, 0.04) !important; }
+.theme-blue .bg-gray-100 { background-color: rgba(255, 255, 255, 0.06) !important; }
+.theme-blue .border-gray-100 { border-color: rgba(255, 255, 255, 0.12) !important; }
+.theme-blue .border-gray-200 { border-color: rgba(255, 255, 255, 0.16) !important; }
+.theme-blue .text-gray-900,
+.theme-blue .text-gray-800 { color: rgba(248, 250, 252, 0.95) !important; }
+.theme-blue .text-gray-700 { color: rgba(248, 250, 252, 0.85) !important; }
+.theme-blue .text-gray-600,
+.theme-blue .text-gray-500 { color: rgba(248, 250, 252, 0.7) !important; }
+.theme-blue .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.06) !important; }
+.theme-blue .hover\:text-gray-900:hover { color: rgba(248, 250, 252, 0.95) !important; }

@@ -1,5 +1,6 @@
 import Products from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
+import User from "../models/userModel.js";
 
 export const createProduct = async (req, res) => {
   try {
@@ -14,6 +15,22 @@ export const createProduct = async (req, res) => {
       quantity = 0,
       reOrderLevel = 10,
     } = req.body;
+
+    //check if products counts has exceeded the user's subscription limit
+    const user = await User.findById(req.user._id);
+    if(!user){
+      return res.status(404).json({ message: "User not found" }); 
+    }
+    // check for user suscription plan compare limit vs product count  ---> if Business plan then unlimited products creation
+    if(user.subscriptionPlan === 'free' && user.productCount >= 20){
+      return res.status(403).json({ message: "You have reached the maximum number of products allowed under your free plan. Please upgrade to create more products." });
+    }
+    if(user.subscriptionPlan === 'pro' && user.productCount >= 100){
+      return res.status(403).json({ message: "You have reached the maximum number of products allowed under your subscription plan." });
+    }
+
+    //dont forget to minus product count if a product is deleted in the future
+
 
     if (!name || !category || !sku || costPrice === undefined || sellingPrice === undefined) {
       return res.status(400).json({ message: "Bad request. Missing required fields" });
@@ -70,6 +87,11 @@ export const createProduct = async (req, res) => {
     });
 
     const savedProduct = await product.save();
+    // Increment user's product count
+    user.productCount += 1;
+    await user.save();
+
+    //
     res.status(201).json({
       message: "Product created successfully",
       product: savedProduct,

@@ -14,7 +14,15 @@ export const GlobalProvider = ({ children }) => {
   const [loading, setLoading] = useState(true); // Start as true to prevent UI flicker
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') || 'white';
+    }
+    return 'white';
+  });
+
   const toggleSidebar = () => setSidebarOpen((s) => !s);
+  const toggleTheme = () => setTheme((t) => (t === 'white' ? 'blue' : 'white'));
 
   const navigate = useNavigate();
 
@@ -36,6 +44,12 @@ export const GlobalProvider = ({ children }) => {
 
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.remove('theme-white', 'theme-blue');
+    document.documentElement.classList.add(`theme-${theme}`);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const Register = async (formData) => {
     setLoading(true);
@@ -182,6 +196,9 @@ export const GlobalProvider = ({ children }) => {
     // sidebar controls
     sidebarOpen,
     toggleSidebar,
+    // theme controls
+    theme,
+    toggleTheme,
   };
 
   return (

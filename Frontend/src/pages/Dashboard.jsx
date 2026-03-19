@@ -24,9 +24,9 @@ const Dashboard = () => {
      const navigate = useNavigate()
 
       return (
-      <div className='mt-2 container text-black'>
+      <div className='mt-2 container text-[var(--text)]'>
             <h2 className='text-2xl font-semibold'>Dashboard</h2>
-            <p className='mt-2 mb-4 text-gray-800'> Welcome Back, Here's what is happening today</p>
+            <p className='mt-2 mb-4 text-[var(--muted)]'> Welcome Back, Here's what is happening today</p>
 
             <div className='grid lg:grid-cols-4 md:grid-cols-2 p-5 gap-4'>
                  <DashboardCard
