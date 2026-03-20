@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useGlobalContext } from '../context/context';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Menu } from 'lucide-react';
 
 const titleMap = {
   '/': 'Dashboard',
@@ -16,7 +16,7 @@ const titleMap = {
 const TopBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, theme, toggleTheme } = useGlobalContext();
+  const { user, logout, theme, toggleTheme, toggleSidebar } = useGlobalContext();
 
   const path = location.pathname === '/' ? '/' : location.pathname;
   const title = titleMap[path] || 'Inventory Management System';
@@ -27,9 +27,16 @@ const TopBar = () => {
 
   return (
     <header className="w-full bg-[var(--topbar)] border-b border-[var(--border)] flex items-center justify-between px-6 py-3 mb-4">
-      <div>
-        <div className="text-xs uppercase tracking-widest text-[var(--muted)]">Inventory Management System</div>
-        <h1 className="text-lg font-semibold text-[var(--text)] mt-1">{title}</h1>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden inline-flex items-center justify-center p-2 rounded-full hover:bg-[var(--surface)]"
+        >
+          <Menu size={18} />
+        </button>
+        <div className="hidden lg:block text-xl font-bold tracking-wider bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">
+          Spectra-inventory
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

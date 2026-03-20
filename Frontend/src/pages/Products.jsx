@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Plus, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "../context/context";
-import Modal from '../components/Modal'
+import Modal from '../components/Modal';
 
 const PAGE_SIZE = 10;
 
@@ -205,18 +205,18 @@ export default function Products() {
     !productForm.name.trim() || !productForm.sku.trim() || !productForm.category || isSavingProduct;
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--bg)] overflow-x-hidden text-[var(--text)]">
       <div className="p-6">
         <div className="flex items-start justify-between flex-wrap mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-            <p className="text-sm mt-2 mb-2 text-gray-600">Manage your inventory products</p>
+            <h1 className="text-2xl font-bold text-[var(--text)]">Products</h1>
+            <p className="text-sm mt-2 mb-2 text-[var(--muted)]">Manage your inventory products</p>
           </div>
           <div className="flex items-center mt-2 gap-3">
-            <button className="px-4 py-2 border rounded-lg text-sm">Export</button>
+            <button className="px-4 py-2 border border-[var(--border)] rounded-lg text-sm">Export</button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg text-sm"
+              className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg text-sm"
             >
               <Plus className="h-4 w-4" /> Add Product
             </button>
@@ -226,17 +226,17 @@ export default function Products() {
         <div className="mb-4">
           <form onSubmit={handleSearchSubmit} className="flex gap-3 items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] h-5 w-5" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search products by name or SKU..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-white text-sm"
+                className="w-full pl-10 pr-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] text-sm"
               />
             </div>
             <select
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              className="px-3 py-2 border border-[var(--border)] rounded-lg text-sm bg-[var(--surface)] text-[var(--text)]"
               value={selectedCategory}
               onChange={(e) => {
                 const v = e.target.value;
@@ -255,28 +255,28 @@ export default function Products() {
         </div>
 
         {/* Table for md and larger screens */}
-        <div className=" hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className=" hidden lg:block bg-[var(--card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
           <div className="overflow-x-auto w-full">
             <table className="w-full table-auto min-w-full">
-              <thead className="bg-gray-50">
-                <tr className="border-b">
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Product Name</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">SKU</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Category</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Supplier</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Cost Price</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Selling Price</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Quantity</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Stock Value</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Status</th>
+              <thead className="bg-[var(--surface)]">
+                <tr className="border-b border-[var(--border)]">
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Product Name</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">SKU</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Category</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Supplier</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Cost Price</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Selling Price</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Quantity</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Stock Value</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading && (
                   <tr>
-                    <td colSpan={9} className="py-10 text-center text-gray-500">
+                    <td colSpan={9} className="py-10 text-center text-[var(--muted)]">
                       <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                        <Loader2 className="h-5 w-5 animate-spin text-[var(--primary)]" />
                         Loading products...
                       </div>
                     </td>
@@ -284,7 +284,7 @@ export default function Products() {
                 )}
                 {!isLoading && products.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-gray-500">
+                    <td colSpan={9} className="py-8 text-center text-[var(--muted)]">
                       No products yet.
                     </td>
                   </tr>
@@ -303,15 +303,15 @@ export default function Products() {
                         : product.category || "Uncategorized";
 
                     return (
-                      <tr key={product._id || product.sku || product.name} className="border-b hover:bg-gray-50">
-                        <td className="py-4 px-4 text-sm font-medium text-gray-900">{product.name}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">{product.sku}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">{categoryLabel}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">{product.supplier || "Unknown"}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">NGN {formatCurrency(product.costPrice)}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">NGN {formatCurrency(product.sellingPrice)}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">{quantity}</td>
-                        <td className="py-4 px-4 text-sm font-medium text-gray-900">NGN {formatCurrency(stockValue)}</td>
+                      <tr key={product._id || product.sku || product.name} className="border-b border-[var(--border)] hover:bg-[var(--surface)]">
+                        <td className="py-4 px-4 text-sm font-medium text-[var(--text)]">{product.name}</td>
+                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{product.sku}</td>
+                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{categoryLabel}</td>
+                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{product.supplier || "Unknown"}</td>
+                        <td className="py-4 px-4 text-sm text-[var(--muted)]">NGN {formatCurrency(product.costPrice)}</td>
+                        <td className="py-4 px-4 text-sm text-[var(--muted)]">NGN {formatCurrency(product.sellingPrice)}</td>
+                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{quantity}</td>
+                        <td className="py-4 px-4 text-sm font-medium text-[var(--text)]">NGN {formatCurrency(stockValue)}</td>
                         <td className="py-4 px-4">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
                             {derivedStatus}
@@ -324,8 +324,8 @@ export default function Products() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <p className="text-sm text-gray-600">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border)]">
+            <p className="text-sm text-[var(--muted)]">
               Showing page {pagination.currentPage} of {pagination.totalPages} ({pagination.total} products)
             </p>
             <div className="flex gap-2">
@@ -333,7 +333,7 @@ export default function Products() {
                 type="button"
                 onClick={() => handlePageChange(-1)}
                 disabled={pagination.currentPage === 1 || isLoading}
-                className="px-3 py-1 border rounded text-sm"
+                className="px-3 py-1 border border-[var(--border)] rounded text-sm"
               >
                 Previous
               </button>
@@ -341,7 +341,7 @@ export default function Products() {
                 type="button"
                 onClick={() => handlePageChange(1)}
                 disabled={pagination.currentPage === pagination.totalPages || isLoading}
-                className="px-3 py-1 border rounded text-sm"
+                className="px-3 py-1 border border-[var(--border)] rounded text-sm"
               >
                 Next
               </button>
@@ -352,11 +352,11 @@ export default function Products() {
         {/* Responsive cards for small screens - avoid horizontal table scroll */}
         <div className="lg:hidden px-2 space-y-3">
           {isLoading && (
-            <div className="py-8 text-center text-gray-500">Loading products...</div>
+            <div className="py-8 text-center text-[var(--muted)]">Loading products...</div>
           )}
 
           {!isLoading && products.length === 0 && (
-            <div className="py-8 text-center text-gray-500">No products yet.</div>
+            <div className="py-8 text-center text-[var(--muted)]">No products yet.</div>
           )}
 
           {!isLoading && products.map((product) => {
@@ -372,18 +372,18 @@ export default function Products() {
                 : product.category || "Uncategorized";
 
             return (
-              <div key={product._id || product.sku || product.name} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              <div key={product._id || product.sku || product.name} className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)] p-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
+                  <h3 className="text-sm font-medium text-[var(--text)]">{product.name}</h3>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>{derivedStatus}</span>
                 </div>
-                <div className="mt-3 text-sm text-gray-700 grid grid-cols-2 gap-2">
-                  <div><span className="text-gray-500">SKU</span><div className="text-gray-900">{product.sku}</div></div>
-                  <div><span className="text-gray-500">Category</span><div className="text-gray-900">{categoryLabel}</div></div>
-                  <div><span className="text-gray-500">Supplier</span><div className="text-gray-900">{product.supplier || 'Unknown'}</div></div>
-                  <div><span className="text-gray-500">Quantity</span><div className="text-gray-900">{quantity}</div></div>
-                  <div><span className="text-gray-500">Cost</span><div className="text-gray-900">NGN {formatCurrency(product.costPrice)}</div></div>
-                  <div><span className="text-gray-500">Stock Value</span><div className="text-gray-900">NGN {formatCurrency(stockValue)}</div></div>
+                <div className="mt-3 text-sm text-[var(--muted)] grid grid-cols-2 gap-2">
+                  <div><span className="text-[var(--muted)]">SKU</span><div className="text-[var(--text)]">{product.sku}</div></div>
+                  <div><span className="text-[var(--muted)]">Category</span><div className="text-[var(--text)]">{categoryLabel}</div></div>
+                  <div><span className="text-[var(--muted)]">Supplier</span><div className="text-[var(--text)]">{product.supplier || 'Unknown'}</div></div>
+                  <div><span className="text-[var(--muted)]">Quantity</span><div className="text-[var(--text)]">{quantity}</div></div>
+                  <div><span className="text-[var(--muted)]">Cost</span><div className="text-[var(--text)]">NGN {formatCurrency(product.costPrice)}</div></div>
+                  <div><span className="text-[var(--muted)]">Stock Value</span><div className="text-[var(--text)]">NGN {formatCurrency(stockValue)}</div></div>
                 </div>
               </div>
             );
@@ -393,39 +393,39 @@ export default function Products() {
 
       {showAddModal && (
         <Modal onClose={() => setShowAddModal(false)} widthClass="max-w-2xl" topOffset="pt-10">
-          <div className="bg-white rounded-xl shadow-lg w-full max-h-[85vh] overflow-y-auto">
+          <div className="bg-[var(--card)] rounded-xl shadow-lg w-full max-h-[85vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Add Product</h2>
-                <button onClick={() => setShowAddModal(false)} className="text-gray-500">Close</button>
+                <button onClick={() => setShowAddModal(false)} className="text-[var(--muted)]">Close</button>
               </div>
               <form onSubmit={handleProductSubmit}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Product Name*</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Product Name*</label>
                     <input
                       type="text"
                       value={productForm.name}
                       onChange={(e) => updateProductForm({ name: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SKU*</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">SKU*</label>
                     <input
                       type="text"
                       value={productForm.sku}
                       onChange={(e) => updateProductForm({ sku: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category*</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Category*</label>
                     <select
                       value={productForm.category}
                       onChange={(e) => updateProductForm({ category: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     >
                       <option value="">Select category</option>
                       {categories.map((c) => (
@@ -437,81 +437,81 @@ export default function Products() {
                     </select>
 
                     {productForm.category === "__new__" && (
-                      <div className="mt-3 p-3 border rounded bg-gray-50">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">New Category Name*</label>
+                      <div className="mt-3 p-3 border rounded bg-[var(--surface)]">
+                        <label className="block text-sm font-medium text-[var(--muted)] mb-1">New Category Name*</label>
                         <input
                           type="text"
                           value={categoryForm.name}
                           onChange={(e) => setCategoryForm((p) => ({ ...p, name: e.target.value }))}
-                          className="w-full px-3 py-2 border rounded text-sm mb-2"
+                          className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm mb-2 bg-[var(--surface)] text-[var(--text)]"
                         />
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                        <label className="block text-sm font-medium text-[var(--muted)] mb-1">Description (optional)</label>
                         <input
                           type="text"
                           value={categoryForm.description}
                           onChange={(e) => setCategoryForm((p) => ({ ...p, description: e.target.value }))}
-                          className="w-full px-3 py-2 border rounded text-sm"
+                          className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                         />
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Supplier</label>
                     <input
                       type="text"
                       value={productForm.supplier}
                       onChange={(e) => updateProductForm({ supplier: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Cost Price*</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Cost Price*</label>
                     <input
                       type="number"
                       step="0.01"
                       value={productForm.costPrice}
                       onChange={(e) => updateProductForm({ costPrice: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price*</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Selling Price*</label>
                     <input
                       type="number"
                       step="0.01"
                       value={productForm.sellingPrice}
                       onChange={(e) => updateProductForm({ sellingPrice: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Initial Quantity*</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Initial Quantity*</label>
                     <input
                       type="number"
                       value={productForm.quantity}
                       onChange={(e) => updateProductForm({ quantity: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Reorder Level</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Reorder Level</label>
                     <input
                       type="number"
                       value={productForm.reOrderLevel}
                       onChange={(e) => updateProductForm({ reOrderLevel: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Description</label>
                     <textarea
                       rows={3}
                       value={productForm.description}
                       onChange={(e) => updateProductForm({ description: e.target.value })}
-                      className="w-full px-3 py-2 border rounded text-sm"
+                      className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
                 </div>
@@ -520,14 +520,14 @@ export default function Products() {
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2 border rounded text-sm"
+                    className="px-4 py-2 border border-[var(--border)] rounded text-sm"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={disableProductSubmit || isSavingCategory}
-                    className="px-4 py-2 bg-blue-600 text-white rounded text-sm disabled:opacity-60"
+                    className="px-4 py-2 bg-[var(--primary)] text-white rounded text-sm disabled:opacity-60"
                   >
                     {isSavingProduct || isSavingCategory ? "Saving..." : "Add Product"}
                   </button>

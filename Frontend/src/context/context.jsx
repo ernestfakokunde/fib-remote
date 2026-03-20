@@ -193,12 +193,11 @@ export const GlobalProvider = ({ children }) => {
     createPurchase,
     getPurchases,
     getProductsDropdown,
-    // sidebar controls
-    sidebarOpen,
-    toggleSidebar,
     // theme controls
     theme,
     toggleTheme,
+    sidebarOpen,
+    toggleSidebar
   };
 
   return (

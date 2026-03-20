@@ -10,22 +10,25 @@
   --primary: #3b82f6;
   --button: #111827;
   --shadow: 0 10px 25px -10px rgba(15, 23, 42, 0.15);
+  --gradient: linear-gradient(135deg, #e0edff 0%, #f9fbff 45%, #ffffff 100%);
 }
 
 /* Blue theme uses a deeper, cooler palette */
 .theme-blue {
-  --bg: #071724;
-  --surface: rgba(15, 23, 42, 0.70);
-  --card: rgba(15, 23, 42, 0.76);
-  --topbar: rgba(15, 23, 42, 0.68);
-  --sidebar: rgba(15, 23, 42, 0.88);
-  --border: rgba(255, 255, 255, 0.12);
+  --bg: #020c1a;
+  --surface: rgba(4, 13, 28, 0.78);
+  --card: rgba(4, 13, 28, 0.84);
+  --topbar: rgba(4, 13, 28, 0.7);
+  --sidebar: rgba(2, 12, 26, 0.94);
+  --border: rgba(255, 255, 255, 0.1);
   --text: rgba(248, 250, 252, 0.95);
-  --muted: rgba(248, 250, 252, 0.6);
-  --primary: #60a5fa;
+  --muted: rgba(248, 250, 252, 0.7);
+  --primary: #4b9afa;
   --button: #e2e8f0;
   --shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.65);
+  --gradient: linear-gradient(135deg, #031024 0%, #0c2b5a 55%, #0a234b 100%);
 }
+
 
 /* White theme is the default light theme */
 .theme-white {

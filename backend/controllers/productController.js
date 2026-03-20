@@ -4,6 +4,20 @@ import User from "../models/userModel.js";
 
 export const createProduct = async (req, res) => {
   try {
+
+       //check if products counts has exceeded the user's subscription limit
+    const user = await User.findById(req.user._id);
+    if(!user){
+      return res.status(404).json({ message: "User not found" }); 
+    }
+    // check for user suscription plan compare limit vs product count  ---> if Business plan then unlimited products creation
+    if(user.subscriptionPlan === 'free' && user.productCount >= 20){
+      return res.status(403).json({ message: "You have reached the maximum number of products allowed under your free plan. Please upgrade to create more products." });
+    }
+    else if(user.subscriptionPlan === 'pro' && user.productCount >= 100){
+      return res.status(403).json({ message: "You have reached the maximum number of products allowed under your subscription plan." });
+    }
+
     const {
       name,
       category,
@@ -16,18 +30,7 @@ export const createProduct = async (req, res) => {
       reOrderLevel = 10,
     } = req.body;
 
-    //check if products counts has exceeded the user's subscription limit
-    const user = await User.findById(req.user._id);
-    if(!user){
-      return res.status(404).json({ message: "User not found" }); 
-    }
-    // check for user suscription plan compare limit vs product count  ---> if Business plan then unlimited products creation
-    if(user.subscriptionPlan === 'free' && user.productCount >= 20){
-      return res.status(403).json({ message: "You have reached the maximum number of products allowed under your free plan. Please upgrade to create more products." });
-    }
-    if(user.subscriptionPlan === 'pro' && user.productCount >= 100){
-      return res.status(403).json({ message: "You have reached the maximum number of products allowed under your subscription plan." });
-    }
+   
 
     //dont forget to minus product count if a product is deleted in the future
 
@@ -96,6 +99,7 @@ export const createProduct = async (req, res) => {
       message: "Product created successfully",
       product: savedProduct,
       success: true,
+      currentUserProductCount: user.productCount,
     });
   } catch (error) {
     console.error(error);
