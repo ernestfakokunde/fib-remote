@@ -1,5 +1,6 @@
 import Purchase from "../models/purchaseModel.js";
 import Products from "../models/productModel.js";
+import { notifyStockIn, notifyLowStock, notifyOutOfStock } from "../services/notificationService.js";
 
 export const createPurchase = async (req, res) => {
   try {
@@ -28,6 +29,16 @@ export const createPurchase = async (req, res) => {
 
     productExists.quantity += parsedQuantity;
     await productExists.save();
+    // send stock in notification check
+    //check directly here
+    if(productExists.quantity === 0){
+     await notifyOutOfStock(req.user, productExists);
+    }
+    else if(productExists.quantity <= productExists.reOrderLevel){
+      await notifyLowStock(req.user, productExists);
+    }
+
+    //
 
     const totalCost = parsedQuantity * parsedCostPrice;
 
@@ -48,6 +59,8 @@ export const createPurchase = async (req, res) => {
       product: productExists,
       success: true,
     });
+    // send stock in notification
+    await notifyStockIn(req.user, productExists, parsedQuantity);
   } catch (error) {
     console.error("Error adding purchase:", error);
     res.status(500).json({ message: "Server Error" });

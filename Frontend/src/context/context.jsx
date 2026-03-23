@@ -13,6 +13,7 @@ export const GlobalProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Start as true to prevent UI flicker
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -22,7 +23,15 @@ export const GlobalProvider = ({ children }) => {
   });
 
   const toggleSidebar = () => setSidebarOpen((s) => !s);
-  const toggleTheme = () => setTheme((t) => (t === 'white' ? 'blue' : 'white'));
+  const toggleTheme = () => {
+    setTheme((t) => {
+      if (t === 'white') return 'blue';
+      if (t === 'blue') return 'blue-black';
+      return 'white';
+    });
+  };
+  const openPalette = () => setIsPaletteOpen(true);
+  const closePalette = () => setIsPaletteOpen(false);
 
   const navigate = useNavigate();
 
@@ -46,7 +55,7 @@ export const GlobalProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.remove('theme-white', 'theme-blue');
+    document.documentElement.classList.remove('theme-white', 'theme-blue', 'theme-blue-black');
     document.documentElement.classList.add(`theme-${theme}`);
     localStorage.setItem('theme', theme);
   }, [theme]);
@@ -197,7 +206,10 @@ export const GlobalProvider = ({ children }) => {
     theme,
     toggleTheme,
     sidebarOpen,
-    toggleSidebar
+    toggleSidebar,
+    isPaletteOpen,
+    openPalette,
+    closePalette,
   };
 
   return (

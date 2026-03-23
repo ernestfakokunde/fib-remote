@@ -74,3 +74,46 @@ body {
 .theme-blue .text-gray-500 { color: rgba(248, 250, 252, 0.7) !important; }
 .theme-blue .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.06) !important; }
 .theme-blue .hover\:text-gray-900:hover { color: rgba(248, 250, 252, 0.95) !important; }
+
+.theme-blue-black {
+  --bg: #010409;
+  --surface: rgba(13, 17, 23, 0.78);
+  --card: rgba(13, 17, 23, 0.84);
+  --topbar: rgba(13, 17, 23, 0.7);
+  --sidebar: rgba(1, 4, 9, 0.94);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: rgba(240, 246, 252, 0.95);
+  --muted: rgba(240, 246, 252, 0.7);
+  --primary: #3b82f6;
+  --button: #f0f6fc;
+  --shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.75);
+  --gradient: linear-gradient(135deg, #0d1117 0%, #161b22 55%, #010409 100%);
+}
+
+.theme-blue-black .bg-white { background-color: rgba(255, 255, 255, 0.08) !important; }
+.theme-blue-black .bg-gray-50 { background-color: rgba(255, 255, 255, 0.04) !important; }
+.theme-blue-black .bg-gray-100 { background-color: rgba(255, 255, 255, 0.06) !important; }
+.theme-blue-black .border-gray-100 { border-color: rgba(255, 255, 255, 0.12) !important; }
+.theme-blue-black .border-gray-200 { border-color: rgba(255, 255, 255, 0.16) !important; }
+.theme-blue-black .text-gray-900,
+.theme-blue-black .text-gray-800 { color: rgba(240, 246, 252, 0.95) !important; }
+.theme-blue-black .text-gray-700 { color: rgba(240, 246, 252, 0.85) !important; }
+.theme-blue-black .text-gray-600,
+.theme-blue-black .text-gray-500 { color: rgba(240, 246, 252, 0.7) !important; }
+.theme-blue-black .hover\:bg-gray-100:hover { background-color: rgba(255, 255, 255, 0.06) !important; }
+.theme-blue-black .hover\:text-gray-900:hover { color: rgba(240, 246, 252, 0.95) !important; }
+
+.gradient-1 {
+  background-image: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+}
+.gradient-2 {
+  background-image: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+}
+.gradient-3 {
+  background-image: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
+}
+.gradient-4 {
+  background-image: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+}
+
+

@@ -4,6 +4,7 @@ import TopBar from './components/TopBar'
 import { Outlet } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { useGlobalContext } from './context/context'
+import Footer from './components/Footer'
 
 const Layout = () => {
   const { toggleSidebar, sidebarOpen } = useGlobalContext();
@@ -16,8 +17,11 @@ const Layout = () => {
         <TopBar />
         <div className='px-6 pb-6'>
           <Outlet />
+          
         </div>
+        <Footer/>
       </main>
+      
     </div>
   )
 }

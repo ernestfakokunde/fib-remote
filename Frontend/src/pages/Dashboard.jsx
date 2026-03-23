@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useGlobalContext } from '../context/context';
 import DashboardCard from '../components/DashboardCard';
+import SpectraAI from '../components/SpectraAI';
+import Footer from '../components/Footer';
 import {
   Package,
   Wallet,
@@ -67,7 +69,7 @@ const Dashboard = () => {
         <MonthlyProfitChart months={6} />
       </div>
 
-      <div className='p-5 grid lg:grid-cols-2 md:grid-cols-2'>
+      <div className='p-5 grid lg:grid-cols-2 gap-4 md:grid-cols-2'>
         {/** Add  action button here */}
         <div className='grid grid-cols-2 gap-4 mt-4'>
           <ActionCard
@@ -99,7 +101,12 @@ const Dashboard = () => {
             name='View Financial Report'
           />
         </div>
+
+        <div className='mt-4'>
+          <SpectraAI />
+        </div>
       </div>
+      
     </div>
   );
 };

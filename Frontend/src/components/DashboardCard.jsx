@@ -12,7 +12,7 @@ const DashboardCard = ({ title, value, trend, Icon }) => {
       </div>
 
       <div className="p-3 rounded-lg bg-blue-50">
-        <Icon className="w-6 h-6 text-blue-600" />
+        <Icon className="w-4 h-4 text-blue-600" />
       </div>
     </div>
   )
