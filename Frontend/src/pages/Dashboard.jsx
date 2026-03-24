@@ -21,6 +21,7 @@ import ActionCard from '../components/ActionCard';
 import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency, formatNumber } from '../utils/format';
+import RecentActivities from '../components/RecentActivities';
 
 const Dashboard = () => {
   const { dashboardMetrics, fetchDashboardMetrics } = useGlobalContext();
@@ -105,6 +106,9 @@ const Dashboard = () => {
         <div className='mt-4'>
           <SpectraAI />
         </div>
+      </div>
+      <div className='p-5 grid grid-cols-1 gap-4'>
+        <RecentActivities />
       </div>
       
     </div>

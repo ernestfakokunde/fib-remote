@@ -1,5 +1,7 @@
 import Expense from '../models/expenseModel.js';
 import Category from '../models/categoryModel.js';
+import User from '../models/userModel.js';
+import { notifyExpenseRecorded } from '../services/notificationService.js';
 
 // Create a new expense
 export const createExpense = async (req, res) => {
@@ -32,6 +34,12 @@ export const createExpense = async (req, res) => {
 
     const saved = await expense.save();
     res.status(201).json({ success: true, expense: saved, message: 'Expense recorded' });
+
+    // Notify user
+    const user = await User.findById(userId);
+    if (user) {
+      await notifyExpenseRecorded(user, saved, cat);
+    }
   } catch (error) {
     console.error('Create expense error:', error);
     res.status(500).json({ success: false, message: 'Server error' });

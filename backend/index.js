@@ -11,6 +11,7 @@ import purchaseRoutes from './routes/purchaseRoute.js';
 import expenseRoutes from './routes/expenseRoute.js';
 import dashboardRoutes from './routes/dashboardRoute.js'
 import reportRoutes from './routes/reportRoute.js';
+import notificationRoutes from './routes/notificationRoute.js';
 
 //load environent variables
 dotenv.config();
@@ -76,6 +77,7 @@ app.use("/api/purchases", purchaseRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/reports", reportRoutes)
+app.use("/api/notifications", notificationRoutes)
 
 app.get('/', (req, res) => {
    console.log("App is running")
@@ -92,6 +94,7 @@ app.get('/', (req, res) => {
       '/api/dashboard',
       '/api/reports',
       '/api/analytics',
+      '/api/notifications',
       '/health'
     ],
     documentation: 'Add your API docs link here',

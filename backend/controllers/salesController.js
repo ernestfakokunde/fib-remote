@@ -1,5 +1,7 @@
 import Products from "../models/productModel.js";
 import Sales from "../models/salesModel.js";
+import User from "../models/userModel.js";
+import { notifySaleMade } from "../services/notificationService.js";
 
 export const createSale = async (req, res) => {
   try {
@@ -59,6 +61,12 @@ export const createSale = async (req, res) => {
       product: productExists,
       success: true,
     });
+
+    // Notify user
+    const user = await User.findById(userId);
+    if (user) {
+      await notifySaleMade(user, newSale, productExists);
+    }
   } catch (error) {
     console.error("Error adding sale:", error);
     res.status(500).json({ message: "Server Error" });

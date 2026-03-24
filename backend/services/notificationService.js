@@ -32,3 +32,19 @@ export const notifyStockIn = async ( user, product, quantity) =>{
     message:`📦 Good news ${user.name}! ${quantity} units of ${product.name} have been added to your inventory.`
   });
 }
+
+export const notifySaleMade = async ( user, sale, product) =>{
+  await Notification.create({
+    userId: user._id,
+    type:"SALE_MADE",
+    message:`💰 Cha-ching! You sold ${sale.quantity} units of ${product.name} for a total of ${sale.totalRevenue}.`
+  });
+};
+
+export const notifyExpenseRecorded = async ( user, expense, category) =>{
+  await Notification.create({
+    userId: user._id,
+    type:"EXPENSE_RECORDED",
+    message:`💸 An expense of ${expense.amount} has been recorded under the ${category.name} category.`
+  });
+};
