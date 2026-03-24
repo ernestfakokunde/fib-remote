@@ -2,6 +2,7 @@ import Notification from "../models/notificationModel.js";
 
 // GET /api/notifications
 export const getNotifications = async (req, res) => {
+  console.log("Fetching notifications for user:", req.user._id);
   try {
     const userId = req.user._id;
 

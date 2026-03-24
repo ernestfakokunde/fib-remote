@@ -10,13 +10,12 @@ import {
   ShoppingCart,
   AlertTriangle,
   TrendingUp,
+  PlusCircle,
+  ArrowDownCircle,
+  Landmark,
 } from 'lucide-react';
 import SalesChart from '../components/SalesChart';
 import MonthlyProfitChart from '../components/MonthlyProfitChart';
-import { FaPlus } from 'react-icons/fa';
-import { FaShoppingCart } from 'react-icons/fa';
-import { FaArrowDown } from 'react-icons/fa';
-import { CiDollar } from 'react-icons/ci';
 import ActionCard from '../components/ActionCard';
 import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
@@ -77,28 +76,28 @@ const Dashboard = () => {
             bgColor='var(--primary)'
             textColor='white'
             link='products'
-            icon={<FaPlus />}
+            icon={<PlusCircle size={28} />}
             name='Add New Product'
           />
           <ActionCard
             bgColor='#10B981'
             textColor='white'
             link='stock-out'
-            icon={<FaShoppingCart />}
+            icon={<ShoppingCart size={28} />}
             name='Create New Sale'
           />
           <ActionCard
             bgColor='#8B5CF6'
             textColor='white'
             link='stock-in'
-            icon={<FaArrowDown />}
+            icon={<ArrowDownCircle size={28} />}
             name='Record New Purchase'
           />
           <ActionCard
             bgColor='#EF4444'
             textColor='white'
             link='reports'
-            icon={<CiDollar />}
+            icon={<Landmark size={28} />}
             name='View Financial Report'
           />
         </div>
