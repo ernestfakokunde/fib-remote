@@ -37,7 +37,7 @@ export const notifySaleMade = async ( user, sale, product) =>{
   await Notification.create({
     userId: user._id,
     type:"SALE_MADE",
-    message:`💰 Cha-ching! You sold ${sale.quantity} units of ${product.name} for a total of ${sale.totalRevenue}.`
+    message:`💰Hola ${user.name}! You sold ${sale.quantity} units of ${product.name} for a total of ${sale.totalRevenue}.`
   });
 };
 
