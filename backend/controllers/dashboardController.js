@@ -11,7 +11,7 @@ const startOfToday = () => {
 // Sales Today
 export const getSalesToday = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     const sales = await Sales.aggregate([
       {
         $match: {
@@ -38,7 +38,7 @@ export const getSalesToday = async (req, res) => {
 // Purchases Today
 export const getPurchasesToday = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
 
     const purchases = await Purchase.aggregate([
       {
@@ -66,7 +66,7 @@ export const getPurchasesToday = async (req, res) => {
 // Profit Today
 export const getTodayProfit = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
 
     const profit = await Sales.aggregate([
       {
@@ -98,7 +98,7 @@ export const getTodayProfit = async (req, res) => {
 // Low Stock Count
 export const getLowStockCount = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
 
     const lowStockProducts = await Product.countDocuments({
       createdBy: userId,
@@ -115,7 +115,7 @@ export const getLowStockCount = async (req, res) => {
 // Total Products
 export const getTotalProducts = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
 
     const totalProducts = await Product.countDocuments({ createdBy: userId });
 
@@ -125,4 +125,3 @@ export const getTotalProducts = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch total products" });
   }
 };
-

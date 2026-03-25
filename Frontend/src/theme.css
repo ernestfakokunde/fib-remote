@@ -64,6 +64,116 @@ body {
   border-color: color-mix(in srgb, var(--border) 92%, transparent);
 }
 
+.glass-overlay {
+  background: color-mix(in srgb, var(--bg) 58%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.glass-modal {
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--card) 90%, transparent), color-mix(in srgb, var(--surface) 75%, transparent));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 80px -32px rgba(15, 23, 42, 0.45);
+}
+
+.notification-panel {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--sidebar) 96%, #020617),
+      color-mix(in srgb, var(--card) 94%, #020617)
+    );
+  border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+  box-shadow: 0 24px 60px -28px rgba(2, 6, 23, 0.65);
+}
+
+.theme-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.theme-input::placeholder {
+  color: var(--muted);
+}
+
+.theme-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--primary) 62%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.theme-btn-primary {
+  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 72%, white));
+  color: white;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.theme-btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 18px 30px -18px color-mix(in srgb, var(--primary) 60%, transparent);
+}
+
+.theme-btn-secondary {
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.theme-btn-secondary:hover {
+  transform: translateY(-1px);
+  background-color: color-mix(in srgb, var(--surface) 96%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
+}
+
+.theme-btn-danger {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.theme-btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 30px -18px rgba(239, 68, 68, 0.65);
+}
+
+.animate-fade-up {
+  animation: fadeUp 320ms ease-out both;
+}
+
+.animate-pop-in {
+  animation: popIn 220ms ease-out both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Provide theme-aware helpers */
 .btn-theme {
   background-color: var(--primary);

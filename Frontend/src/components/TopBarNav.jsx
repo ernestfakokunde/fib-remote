@@ -7,10 +7,15 @@ import {
   ArrowUpCircle,
   DollarSign,
   BarChart,
+  UserRound,
+  Users,
   Settings,
+  Zap,
 } from "lucide-react";
 
 const TopBarNav = () => {
+  const { permissions } = useGlobalContext();
+
   return (
     <div className="absolute top-16 right-4 bg-[var(--sidebar)] shadow-md rounded-md p-4 lg:hidden">
       <nav className="space-y-2">
@@ -18,9 +23,12 @@ const TopBarNav = () => {
         <NavItem to="/products" label="Products" Icon={Package} />
         <NavItem to="/stock-in" label="Stock-In" Icon={ArrowDownCircle} />
         <NavItem to="/stock-out" label="Stock-Out" Icon={ArrowUpCircle} />
-        <NavItem to="/expenses" label="Expenses" Icon={DollarSign} />
-        <NavItem to="/reports" label="Reports" Icon={BarChart} />
-        <NavItem to="/settings" label="Settings" Icon={Settings} />
+        {permissions.canAccessExpenses ? <NavItem to="/expenses" label="Expenses" Icon={DollarSign} /> : null}
+        {permissions.canAccessReports ? <NavItem to="/reports" label="Reports" Icon={BarChart} /> : null}
+        <NavItem to="/profile" label="Profile" Icon={UserRound} />
+        {permissions.canAccessSettings ? <NavItem to="/team" label="Team" Icon={Users} /> : null}
+        {permissions.canAccessSettings ? <NavItem to="/settings" label="Settings" Icon={Settings} /> : null}
+        {permissions.canViewPremium ? <NavItem to="/premium" label="Premium" Icon={Zap} /> : null}
       </nav>
     </div>
   );
@@ -43,3 +51,4 @@ const NavItem = ({ to, label, Icon }) => (
 );
 
 export default TopBarNav;
+import { useGlobalContext } from "../context/context";

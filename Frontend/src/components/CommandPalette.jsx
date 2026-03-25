@@ -6,11 +6,11 @@ const CommandPalette = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center pt-20 z-50'>
-      <div className='relative bg-gray-900/50 border border-gray-700 rounded-xl w-full max-w-2xl'>
+    <div className='glass-overlay fixed inset-0 z-50 flex items-start justify-center pt-20'>
+      <div className='glass-modal animate-fade-up relative w-full max-w-2xl rounded-3xl'>
         <button
           onClick={onClose}
-          className='absolute top-2 right-2 p-1.5 rounded-full text-gray-400 hover:bg-gray-700/50'
+          className='absolute right-3 top-3 rounded-full p-1.5 text-[var(--muted)] hover:bg-[var(--surface)]'
         >
           <X size={18} />
         </button>

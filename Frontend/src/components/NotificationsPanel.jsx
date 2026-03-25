@@ -12,7 +12,7 @@ const NotificationsPanel = ({
   if (!isOpen) return null;
 
   return (
-    <div className='glass-panel absolute top-full right-0 mt-3 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border z-50'>
+    <div className='notification-panel absolute right-0 top-full z-[120] mt-3 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl'>
       <div className='flex items-center justify-between border-b border-[var(--border)] px-4 py-4'>
         <h3 className='flex items-center gap-2 font-semibold text-[var(--text)]'>
           <Bell size={18} />

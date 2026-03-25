@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGlobalContext } from '../context/context.jsx';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.png';
 
 const Login = () => {
   const { Login, loading } = useGlobalContext();
-  const navigate = useNavigate();
+  const [loginMode, setLoginMode] = useState('admin');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +23,6 @@ const Login = () => {
       await Login({ email, password });
       setEmail('');
       setPassword('');
-      navigate('/');
     } catch (error) {
       toast.error('Login failed. Please try again.');
       console.log(error);
@@ -42,26 +40,65 @@ const Login = () => {
         />
 
         <h2 className="text-2xl font-semibold text-center mt-4 text-[var(--text)]">
-          {' '}
-          Log back in
+          Access your inventory workspace
         </h2>
-        <p className="text-[var(--muted)] text-center text-sm mb-8">
-          Log in to your Inventory Pro account
-        </p>
+        <div className="mt-5 mb-5 flex rounded-full border border-[var(--border)] bg-[var(--surface)] p-1">
+          <button
+            type="button"
+            onClick={() => setLoginMode('admin')}
+            className={`flex-1 rounded-full px-4 py-2 text-sm transition ${
+              loginMode === 'admin'
+                ? 'bg-[var(--primary)] text-white'
+                : 'text-[var(--muted)]'
+            }`}
+          >
+            Login as admin
+          </button>
+          <button
+            type="button"
+            onClick={() => setLoginMode('salesperson')}
+            className={`flex-1 rounded-full px-4 py-2 text-sm transition ${
+              loginMode === 'salesperson'
+                ? 'bg-[var(--primary)] text-white'
+                : 'text-[var(--muted)]'
+            }`}
+          >
+            Login as salesperson
+          </button>
+        </div>
+        {loginMode === 'admin' ? (
+          <>
+            <p className="text-[var(--muted)] text-center text-sm mb-3">
+              Admin accounts have full control across products, settings, plans, and staff access.
+            </p>
+            <p className="text-[var(--muted)] text-center text-xs mb-8">
+              Use your main workspace credentials to manage products, plans, reports, and team accounts.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-[var(--muted)] text-center text-sm mb-3">
+              Salesperson sub-accounts use credentials created by the admin.
+            </p>
+            <p className="text-[var(--muted)] text-center text-xs mb-8">
+              Salesperson access is limited to stock-in, sales recording, and viewing products inside the assigned workspace.
+            </p>
+          </>
+        )}
 
         <form className="space-y-4">
           {/* Email */}
           <div>
             <label className="text-sm font-medium text-[var(--text)]">
-              Email Address
+              Email or Username
             </label>
             <input
-              type='email'
+              type='text'
               onChange={handleChange}
               name='email'
               value={email}
               required
-              placeholder='Enter your email address'
+              placeholder='Enter your email or username'
               className="w-full mt-1 p-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] focus:ring-2 focus:ring-[var(--primary)] outline-none"
             />
           </div>

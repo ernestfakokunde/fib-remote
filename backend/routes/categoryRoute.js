@@ -5,13 +5,13 @@ import {
   deleteCategory,
   getCategories,
 } from "../controllers/categoryController.js";
-import { Protect } from "../middlewares/Authentication.js";
+import { Protect, requireRoles } from "../middlewares/Authentication.js";
 
 const router = express.Router();
 
-router.post("/", Protect, createCategory);
+router.post("/", Protect, requireRoles("admin"), createCategory);
 router.get("/", Protect, getCategories);
-router.patch("/:id", Protect, updateCategory);
-router.delete("/:id", Protect, deleteCategory);
+router.patch("/:id", Protect, requireRoles("admin"), updateCategory);
+router.delete("/:id", Protect, requireRoles("admin"), deleteCategory);
 
 export default router;

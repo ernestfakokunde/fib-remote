@@ -5,12 +5,14 @@ import { Sun, Moon, Menu, Bell, Command, X } from 'lucide-react';
 import CommandPalette from './CommandPalette';
 import NotificationsPanel from './NotificationsPanel';
 import useNotifications from '../hooks/useNotifications';
+import SpectraLogo from '../assets/spectra.png';
 
 const TopBar = () => {
   const navigate = useNavigate();
   const {
     user,
     logout,
+    permissions,
     theme,
     toggleTheme,
     sidebarOpen,
@@ -33,7 +35,7 @@ const TopBar = () => {
   };
 
   return (
-    <header className='glass-panel mb-4 flex w-full items-center justify-between border px-6 py-3'>
+    <header className='glass-panel relative z-[80] mb-4 flex w-full items-center justify-between border px-6 py-3 overflow-visible'>
       <div className='flex items-center gap-4'>
         <button
           onClick={toggleSidebar}
@@ -41,8 +43,14 @@ const TopBar = () => {
         >
           {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
-        <div className='hidden lg:block text-xl font-bold tracking-wider bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text'>
-          Spectra-inventory
+        <div className='hidden lg:flex items-center gap-3'>
+          <div className='rounded-2xl bg-white/10 p-2 shadow-lg ring-1 ring-white/10'>
+            <img src={SpectraLogo} alt='Spectra' className='h-10 w-10 object-contain' />
+          </div>
+          <div>
+            <p className='text-lg font-semibold tracking-wide text-[var(--text)]'>Spectra</p>
+            <p className='text-xs uppercase tracking-[0.32em] text-[var(--muted)]'>Inventory Hub</p>
+          </div>
         </div>
       </div>
 
@@ -54,12 +62,14 @@ const TopBar = () => {
           <Command size={16} />
           <span>AI Command</span>
         </button>
-        <button
-          onClick={() => navigate('/settings')}
-          className='hidden sm:inline-flex text-sm text-[var(--muted)] hover:text-[var(--text)]'
-        >
-          Settings
-        </button>
+        {permissions.canAccessSettings ? (
+          <button
+            onClick={() => navigate('/settings')}
+            className='hidden sm:inline-flex text-sm text-[var(--muted)] hover:text-[var(--text)]'
+          >
+            Settings
+          </button>
+        ) : null}
 
         <button
           onClick={toggleTheme}
@@ -69,7 +79,7 @@ const TopBar = () => {
           {theme === 'white' ? <Moon size={18} /> : <Sun size={18} />}
         </button>
 
-        <div className='relative'>
+        <div className='relative z-[121]'>
           <button
             onClick={() => setAreNotificationsOpen((prev) => !prev)}
             className='relative inline-flex items-center justify-center rounded-full p-2 hover:bg-[var(--surface)]'

@@ -1,12 +1,21 @@
 import React from 'react' 
 import { FaFacebookF, FaLinkedinIn, FaInstagram, FaYoutube } from 'react-icons/fa'
+import SpectraLogo from '../assets/spectra.png';
 
 const Footer = () => {
   return (
-    <footer style={{ backgroundColor: 'var(--card)', color: 'var(--text)' }} className="mt-12">
+    <footer style={{ backgroundColor: 'var(--card)', color: 'var(--text)' }} className="mt-12 border-t border-[var(--border)]">
       <div className="max-w-6xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between">
-          <img src={""} alt="Spectra" className="w-36" />
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-[var(--surface)] p-2 shadow-lg ring-1 ring-white/10">
+              <img src={SpectraLogo} alt="Spectra" className="h-12 w-12 object-contain" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold tracking-wide">Spectra</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">Inventory Hub</p>
+            </div>
+          </div>
 
           <button className="hidden md:inline-flex items-center gap-2 px-4 py-2 border rounded-full" style={{ borderColor: 'var(--border)'}}>
             <span className="text-sm">United States | English</span>

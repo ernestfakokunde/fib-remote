@@ -14,6 +14,9 @@ import ProtectedRoute from './protectedRoute/protectedRoute.jsx';
 import Products from './pages/Products.jsx';
 import Reports from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
+import Profile from './pages/Profile.jsx';
+import Premium from './pages/Premium.jsx';
+import StaffAccounts from './pages/StaffAccounts.jsx';
 
 const App = () => {
   return (
@@ -22,12 +25,15 @@ const App = () => {
      <Routes>
           <Route path='/' element={<ProtectedRoute><Layout /></ProtectedRoute>}>
              <Route index element={<Dashboard/>}/>
-             <Route path='/stock-in' element={<StockIn/>}/>
-             <Route path='/stock-out' element={<StockOut/>}/>
-             <Route path='/expenses' element={<Expenses/>}/>
-             <Route path='/products' element={<Products/>}/>
-             <Route path='/reports' element={<Reports/>}/>
-             <Route path='/settings' element={<Settings/>}/>
+             <Route path='/stock-in' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><StockIn/></ProtectedRoute>}/>
+             <Route path='/stock-out' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><StockOut/></ProtectedRoute>}/>
+             <Route path='/expenses' element={<ProtectedRoute allowedRoles={['admin']}><Expenses/></ProtectedRoute>}/>
+             <Route path='/products' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><Products/></ProtectedRoute>}/>
+             <Route path='/reports' element={<ProtectedRoute allowedRoles={['admin']}><Reports/></ProtectedRoute>}/>
+             <Route path='/profile' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><Profile/></ProtectedRoute>}/>
+             <Route path='/premium' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><Premium/></ProtectedRoute>}/>
+             <Route path='/team' element={<ProtectedRoute allowedRoles={['admin']}><StaffAccounts/></ProtectedRoute>}/>
+             <Route path='/settings' element={<ProtectedRoute allowedRoles={['admin']}><Settings/></ProtectedRoute>}/>
           </Route>
           <Route path='/register' element={<Register />} />
           <Route path='/login' element={<Login />} />

@@ -62,10 +62,13 @@ const Register = () => {
         />
 
         <h2 className="text-2xl font-semibold text-center mt-4 text-[var(--text)]">
-          Create Account
+          Create your admin workspace
         </h2>
-        <p className="text-[var(--muted)] text-center text-sm mb-8">
-          Get started with your inventory
+        <p className="text-[var(--muted)] text-center text-sm mb-3">
+          Build the main account that controls products, plans, inventory access, and staff permissions.
+        </p>
+        <p className="text-[var(--muted)] text-center text-xs mb-8">
+          Salesperson sub-accounts are created later by the admin with generated passwords.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -39,15 +39,11 @@ const SalesChart = ({ startDate, endDate }) => {
       const res = await getSalesPerDay(params);
       const data = res.data?.data || [];
 
-      // backend returns array of { date: 'YYYY-MM-DD', totalSales }
       let sorted = data.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      // On the dashboard (no explicit start/end), cap to last 7 days
       if (!startDate && !endDate && sorted.length > 7) {
         sorted = sorted.slice(-7);
       }
 
-      // use short weekday labels for compact display (Mon, Tue...)
       const formattedLabels = sorted.map((d) => {
         const dt = new Date(d.date);
         return dt.toLocaleDateString(undefined, { weekday: 'short' });
@@ -74,7 +70,6 @@ const SalesChart = ({ startDate, endDate }) => {
         data: values,
         borderColor: 'rgba(59,130,246,1)',
         borderWidth: 3,
-        // use a scriptable backgroundColor to create a vertical gradient fill
         backgroundColor: (context) => {
           const chart = context.chart;
           const { ctx, chartArea } = chart;
@@ -92,9 +87,9 @@ const SalesChart = ({ startDate, endDate }) => {
         pointBackgroundColor: 'rgba(59,130,246,1)',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
-        pointHoverRadius: 8
-      }
-    ]
+        pointHoverRadius: 8,
+      },
+    ],
   };
 
   const options = {
@@ -108,14 +103,14 @@ const SalesChart = ({ startDate, endDate }) => {
           label: function(context) {
             const v = context.parsed.y || 0;
             return 'NGN ' + Number(v).toLocaleString();
-          }
-        }
-      }
+          },
+        },
+      },
     },
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#6b7280' }
+        ticks: { color: '#6b7280' },
       },
       y: {
         beginAtZero: true,
@@ -124,17 +119,17 @@ const SalesChart = ({ startDate, endDate }) => {
           callback: function(value) {
             return 'NGN ' + Number(value).toLocaleString();
           },
-          color: '#6b7280'
-        }
-      }
-    }
+          color: '#6b7280',
+        },
+      },
+    },
   };
 
   return (
-    <div className='bg-white rounded-lg p-4 shadow' style={{ height: 340 }}>
-      <h3 className='text-lg font-medium mb-3'>Sales Analytics</h3>
+    <div className="glass-panel rounded-[1.6rem] border border-white/10 p-4 shadow-xl" style={{ height: 340 }}>
+      <h3 className="mb-3 text-lg font-medium text-[var(--text)]">Sales Analytics</h3>
       {loading ? (
-        <div className='py-8 text-center'>Loading...</div>
+        <div className="py-8 text-center text-[var(--muted)]">Loading...</div>
       ) : (
         <div style={{ width: '100%', height: '100%' }}>
           <Line data={chartData} options={options} />

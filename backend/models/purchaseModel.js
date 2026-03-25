@@ -36,6 +36,11 @@ const purchaseSchema = mongoose.Schema(
       ref: "User",
       required: true,
     },
+    recordedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   { timestamps: true }
 );

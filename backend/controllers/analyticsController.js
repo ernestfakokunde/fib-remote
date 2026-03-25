@@ -2,7 +2,7 @@
 
 export const getSalesAnalytics = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -73,7 +73,7 @@ export const getSalesAnalytics = async (req, res) => {
 
 export const getMonthlyProfit = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     const months = parseInt(req.query.months, 10) || 6;
 
     const now = new Date();

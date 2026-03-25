@@ -3,6 +3,7 @@ import { Search, Plus, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "../context/context";
 import Modal from '../components/Modal';
+import SpectraLogo from '../assets/spectra.png';
 
 const PAGE_SIZE = 10;
 
@@ -56,7 +57,7 @@ export default function Products() {
   const [isSavingCategory, setIsSavingCategory] = useState(false);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, total: 0 });
 
-  const { getProducts, createProduct, getCategories, createCategory } = useGlobalContext();
+  const { getProducts, createProduct, getCategories, createCategory, permissions, isSalesperson } = useGlobalContext();
 
   const updateProductForm = (updates) => {
     setProductForm((prev) => ({ ...prev, ...updates }));
@@ -111,6 +112,11 @@ export default function Products() {
 
   const handleProductSubmit = async (e) => {
     e.preventDefault();
+    if (!permissions.canCreateProduct) {
+      toast.error("You're not allowed to add products");
+      setShowAddModal(false);
+      return;
+    }
     // If user chose to create a new category from the modal, create it first
     let createdCategoryId = null;
     if (productForm.category === "__new__") {
@@ -161,29 +167,6 @@ export default function Products() {
     }
   };
 
-  const handleCategorySubmit = async (e) => {
-    e.preventDefault();
-    if (!categoryForm.name.trim()) {
-      toast.error("Category name is required");
-      return;
-    }
-    setIsSavingCategory(true);
-    try {
-      await createCategory(categoryForm);
-      toast.success("Category created");
-      setCategoryForm({ name: "", description: "" });
-      const res = await getCategories();
-      const list = Array.isArray(res.data?.data) ? res.data.data : [];
-      setCategories(list);
-      resetProductForm(list);
-    } catch (error) {
-      const msg = error.response?.data?.message || "Failed to create category";
-      toast.error(msg);
-    } finally {
-      setIsSavingCategory(false);
-    }
-  };
-
   const handlePageChange = (direction) => {
     const nextPage = pagination.currentPage + direction;
     if (nextPage < 1 || nextPage > pagination.totalPages) return;
@@ -195,30 +178,43 @@ export default function Products() {
     fetchProducts(1, searchTerm);
   };
 
-  const handleSearchReset = () => {
-    setSearchTerm("");
-    fetchProducts(1, "");
-  };
-
-  const noCategories = categories.length === 0;
   const disableProductSubmit =
-    !productForm.name.trim() || !productForm.sku.trim() || !productForm.category || isSavingProduct;
+    !permissions.canCreateProduct || !productForm.name.trim() || !productForm.sku.trim() || !productForm.category || isSavingProduct;
+
+  const handleOpenAddModal = () => {
+    if (!permissions.canCreateProduct) {
+      toast.error("You're not allowed to view this action");
+      return;
+    }
+    setShowAddModal(true);
+  };
 
   return (
     <div className="min-h-screen bg-[var(--bg)] overflow-x-hidden text-[var(--text)]">
       <div className="p-6">
         <div className="flex items-start justify-between flex-wrap mb-6">
-          <div>
+          <div className="flex items-center gap-4">
+            <div className="rounded-3xl bg-[var(--surface)] p-3 shadow-lg ring-1 ring-white/10">
+              <img src={SpectraLogo} alt="Spectra" className="h-12 w-12 object-contain" />
+            </div>
+            <div>
             <h1 className="text-2xl font-bold text-[var(--text)]">Products</h1>
-            <p className="text-sm mt-2 mb-2 text-[var(--muted)]">Manage your inventory products</p>
+            <p className="text-sm mt-2 mb-2 text-[var(--muted)]">
+              {isSalesperson ? "Browse product stock and pricing in view-only mode" : "Manage your inventory products"}
+            </p>
+            </div>
           </div>
           <div className="flex items-center mt-2 gap-3">
             <button className="px-4 py-2 border border-[var(--border)] rounded-lg text-sm">Export</button>
             <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg text-sm"
+              onClick={handleOpenAddModal}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm ${
+                permissions.canCreateProduct
+                  ? "bg-[var(--primary)] text-white"
+                  : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]"
+              }`}
             >
-              <Plus className="h-4 w-4" /> Add Product
+              <Plus className="h-4 w-4" /> {permissions.canCreateProduct ? "Add Product" : "Admin Only"}
             </button>
           </div>
         </div>

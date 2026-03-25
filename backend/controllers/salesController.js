@@ -6,7 +6,7 @@ import { notifySaleMade } from "../services/notificationService.js";
 export const createSale = async (req, res) => {
   try {
     const { productId, quantity, sellingPrice, date, customer } = req.body;
-    const userId = req.user._id;
+    const workspaceOwnerId = req.workspaceOwnerId;
 
     if (!productId || quantity === undefined || sellingPrice === undefined) {
       return res.status(400).json({ message: "All fields are required" });
@@ -23,7 +23,7 @@ export const createSale = async (req, res) => {
       return res.status(400).json({ message: "Selling price must be greater than 0" });
     }
 
-    const productExists = await Products.findOne({ _id: productId, createdBy: userId });
+    const productExists = await Products.findOne({ _id: productId, createdBy: workspaceOwnerId });
     if (!productExists) {
       return res.status(404).json({ message: "Product does not exist" });
     }
@@ -49,7 +49,8 @@ export const createSale = async (req, res) => {
       profit,
       date: date ? new Date(date) : Date.now(),
       customer: customer?.trim() || "Walk-in Customer",
-      createdBy: userId,
+      createdBy: workspaceOwnerId,
+      recordedBy: req.user._id,
     });
 
     productExists.quantity -= parsedQuantity;
@@ -62,10 +63,9 @@ export const createSale = async (req, res) => {
       success: true,
     });
 
-    // Notify user
-    const user = await User.findById(userId);
-    if (user) {
-      await notifySaleMade(user, newSale, productExists);
+    const workspaceUser = await User.findById(workspaceOwnerId);
+    if (workspaceUser) {
+      await notifySaleMade(workspaceUser, newSale, productExists);
     }
   } catch (error) {
     console.error("Error adding sale:", error);
@@ -75,12 +75,10 @@ export const createSale = async (req, res) => {
 
 export const getAllSales = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     const { page = 1, limit = 100, startDate, endDate } = req.query;
-
     const pageNumber = Math.max(1, parseInt(page, 10) || 1);
     const limitNumber = Math.max(1, Math.min(1000, parseInt(limit, 10) || 100));
-
     const filter = { createdBy: userId };
 
     if (startDate || endDate) {
@@ -99,7 +97,6 @@ export const getAllSales = async (req, res) => {
         .skip(skip)
         .limit(limitNumber)
         .lean(),
-      // aggregate overall revenue & profit for the current filter (ignores pagination)
       Sales.aggregate([
         { $match: filter },
         {
@@ -132,13 +129,11 @@ export const getAllSales = async (req, res) => {
     });
   }
 };
- 
+
 export const getSalesPerDay = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     const { startDate, endDate } = req.query;
-
-    // match against the correct createdBy field and prepare date range if provided
     let match = { createdBy: userId };
 
     if (startDate || endDate) {
@@ -147,7 +142,7 @@ export const getSalesPerDay = async (req, res) => {
       if (endDate) match.date.$lte = new Date(endDate + 'T23:59:59.999Z');
     }
 
-    const pipeline = [
+    const data = await Sales.aggregate([
       { $match: match },
       {
         $group: {
@@ -163,12 +158,9 @@ export const getSalesPerDay = async (req, res) => {
         }
       },
       { $sort: { date: 1 } }
-    ];
-
-    const data = await Sales.aggregate(pipeline);
+    ]);
 
     res.json({ success: true, data });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: 'Failed to fetch sales per day' });

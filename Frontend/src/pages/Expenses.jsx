@@ -6,10 +6,10 @@ import { toast } from "react-toastify";
 import { formatCurrency, formatNumber } from "../utils/format";
 
 const SummaryCard = ({ title, value, sub }) => (
-  <div className="bg-white p-4 rounded-lg shadow-sm">
-    <div className="text-sm text-gray-600">{title}</div>
-    <div className="text-xl font-semibold mt-2">{value}</div>
-    {sub && <div className="text-xs text-gray-400">{sub}</div>}
+  <div className="glass-panel animate-fade-up rounded-3xl border p-4">
+    <div className="text-sm text-[var(--muted)]">{title}</div>
+    <div className="mt-2 text-xl font-semibold text-[var(--text)]">{value}</div>
+    {sub && <div className="text-xs text-[var(--muted)]">{sub}</div>}
   </div>
 );
 
@@ -73,6 +73,8 @@ const Expenses = () => {
     }
   };
 
+  // Initial load runs once on mount.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCategories();
     fetchExpenses();
@@ -284,13 +286,13 @@ const Expenses = () => {
           widthClass="max-w-md"
           topOffset="pt-12"
         >
-          <div className="bg-white rounded-xl shadow-lg w-full">
+          <div className="glass-modal w-full rounded-2xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Add Expense</h2>
+                <h2 className="text-xl font-bold text-[var(--text)]">Add Expense</h2>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-500"
+                  className="text-[var(--muted)]"
                 >
                   Close
                 </button>
@@ -301,7 +303,7 @@ const Expenses = () => {
                     Category
                   </label>
                   <select
-                    className="w-full px-3 py-2 border rounded"
+                    className="theme-input rounded px-3 py-2"
                     value={form.category}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, category: e.target.value }))
@@ -322,7 +324,7 @@ const Expenses = () => {
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full px-3 py-2 border rounded"
+                    className="theme-input rounded px-3 py-2"
                     value={form.amount}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, amount: e.target.value }))
@@ -335,7 +337,7 @@ const Expenses = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border rounded"
+                    className="theme-input rounded px-3 py-2"
                     value={form.description}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, description: e.target.value }))
@@ -348,7 +350,7 @@ const Expenses = () => {
                   </label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2 border rounded"
+                    className="theme-input rounded px-3 py-2"
                     value={form.date}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, date: e.target.value }))
@@ -359,13 +361,13 @@ const Expenses = () => {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 border rounded-full"
+                    className="theme-btn-secondary rounded-full px-4 py-2"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-full"
+                    className="theme-btn-primary rounded-full px-4 py-2"
                   >
                     Save
                   </button>
@@ -382,13 +384,13 @@ const Expenses = () => {
           widthClass="max-w-md"
           topOffset="pt-12"
         >
-          <div className="bg-white rounded-xl shadow-lg w-full">
+          <div className="glass-modal w-full rounded-2xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Add Category</h2>
+                <h2 className="text-xl font-bold text-[var(--text)]">Add Category</h2>
                 <button
                   onClick={() => setCatModal(false)}
-                  className="text-gray-500"
+                  className="text-[var(--muted)]"
                 >
                   Close
                 </button>
@@ -400,7 +402,7 @@ const Expenses = () => {
                   </label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border rounded"
+                    className="theme-input rounded px-3 py-2"
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                   />
@@ -412,13 +414,13 @@ const Expenses = () => {
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
-                      className="w-12 h-10 p-0 border rounded"
+                      className="theme-input h-10 w-12 rounded p-0"
                       value={newCategoryColor}
                       onChange={(e) => setNewCategoryColor(e.target.value)}
                     />
                     <input
                       type="text"
-                      className="px-3 py-2 border rounded w-full"
+                      className="theme-input w-full rounded px-3 py-2"
                       value={newCategoryColor}
                       onChange={(e) => setNewCategoryColor(e.target.value)}
                     />
@@ -428,13 +430,13 @@ const Expenses = () => {
                   <button
                     type="button"
                     onClick={() => setCatModal(false)}
-                    className="px-4 py-2 border rounded-full"
+                    className="theme-btn-secondary rounded-full px-4 py-2"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-full"
+                    className="theme-btn-primary rounded-full px-4 py-2"
                   >
                     Create
                   </button>

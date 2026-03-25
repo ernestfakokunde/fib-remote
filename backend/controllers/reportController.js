@@ -3,7 +3,7 @@ import Products from "../models/productModel.js";
 
 export const generateSalesReport = async (req, res) => {
   try {
-    const userId = req.user && req.user._id;
+    const userId = req.workspaceOwnerId;
     if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
     const { start, end } = req.query;

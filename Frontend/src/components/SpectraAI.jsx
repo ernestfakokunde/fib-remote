@@ -12,9 +12,9 @@ const SpectraAI = () => {
   ];
 
   return (
-    <div className='bg-gray-900/50 text-white rounded-lg p-4 w-full max-w-lg mx-auto'>
+    <div className='glass-panel animate-fade-up mx-auto w-full max-w-lg rounded-3xl border p-5 text-[var(--text)]'>
       <div className='flex items-center gap-2 mb-4'>
-        <Sparkles className='text-purple-400' />
+        <Sparkles className='text-[var(--primary)]' />
         <h3 className='text-lg font-semibold'>Ask Spectra AI</h3>
       </div>
       <input
@@ -22,16 +22,16 @@ const SpectraAI = () => {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         placeholder='e.g., "Show me top selling products"'
-        className='w-full bg-gray-800/50 border border-gray-700 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500'
+        className='theme-input rounded-2xl px-3 py-2'
       />
-      <div className='mt-4 text-sm text-gray-400'>
+      <div className='mt-4 text-sm text-[var(--muted)]'>
         <p className='font-semibold mb-2'>Suggestions:</p>
         <div className='grid grid-cols-2 gap-2'>
           {suggestions.map((s, i) => (
             <button
               key={i}
               onClick={() => setInputValue(s)}
-              className='text-left bg-gray-800/50 hover:bg-gray-700/50 p-2 rounded-md transition-colors'
+              className='glass-hover rounded-2xl border border-transparent p-2 text-left transition-colors'
             >
               {s}
             </button>

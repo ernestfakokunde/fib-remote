@@ -4,8 +4,11 @@ import Products from "../models/productModel.js";
 
 export const createCategory = async (req, res) => {
   try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can create categories" });
+    }
     const { name, description } = req.body;
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ message: "Category name is required" });
@@ -41,7 +44,7 @@ export const createCategory = async (req, res) => {
 
 export const getCategories = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     const page = Math.max(1, parseInt(req.query.page || "1", 10));
     const limit = Math.max(1, parseInt(req.query.limit || "50", 10));
     const skip = (page - 1) * limit;
@@ -72,7 +75,10 @@ export const getCategories = async (req, res) => {
 
 export const updateCategory = async (req, res) => {
   try {
-    const userId = req.user._id;
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can update categories" });
+    }
+    const userId = req.workspaceOwnerId;
     const { id } = req.params;
     if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({ message: "Invalid category id" });
@@ -115,7 +121,10 @@ export const updateCategory = async (req, res) => {
 
 export const deleteCategory = async (req, res) => {
   try {
-    const userId = req.user._id;
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can delete categories" });
+    }
+    const userId = req.workspaceOwnerId;
     const { id } = req.params;
     if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({ message: "invalid category id" });

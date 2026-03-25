@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import SalesChart from '../components/SalesChart';
 import ExpensesByCategory from '../components/ExpensesByCategory';
 import MonthlyProfitChart from '../components/MonthlyProfitChart';
@@ -6,19 +6,21 @@ import { useGlobalContext } from '../context/context';
 import { formatCurrency, formatNumber } from '../utils/format';
 
 const SummaryCard = ({ title, value }) => (
-  <div className='bg-white p-4 rounded-lg shadow-sm'>
-    <div className='text-sm text-gray-600'>{title}</div>
-    <div className='text-xl font-semibold mt-2'>{value}</div>
+  <div className="glass-panel rounded-[1.5rem] border border-white/10 p-5 shadow-xl">
+    <div className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">{title}</div>
+    <div className="mt-3 text-2xl font-semibold text-[var(--text)]">{value}</div>
   </div>
 );
 
-const ProductListItem = ({ title, sub, value }) => (
-  <div className='bg-green-50 p-4 rounded-md mb-3 flex items-center justify-between'>
+const ProductListItem = ({ title, sub, value, tone = 'sky' }) => (
+  <div className={`flex items-center justify-between rounded-[1.2rem] border p-4 ${
+    tone === 'amber' ? 'border-amber-300/15 bg-amber-300/10' : 'border-sky-300/15 bg-sky-300/10'
+  }`}>
     <div>
-      <div className='font-semibold'>{title}</div>
-      <div className='text-sm text-gray-500'>{sub}</div>
+      <div className="font-semibold text-[var(--text)]">{title}</div>
+      <div className="text-sm text-[var(--muted)]">{sub}</div>
     </div>
-    <div className='text-green-700 font-semibold'>{value}</div>
+    <div className={`font-semibold ${tone === 'amber' ? 'text-amber-100' : 'text-sky-100'}`}>{value}</div>
   </div>
 );
 
@@ -47,7 +49,6 @@ const Reports = () => {
 
       const salesData = reportRes.data?.data || reportRes.data || {};
       const expenseData = expenseRes.data || {};
-
       const totalRevenue = Number(
         salesData.totalRevenue || salesData.totalRevenue === 0 ? salesData.totalRevenue : 0
       );
@@ -56,15 +57,13 @@ const Reports = () => {
         salesData.grossProfit || salesData.grossProfit === 0 ? salesData.grossProfit : totalRevenue - totalCost
       );
       const totalExpenses = Number(expenseData.totalExpenses || 0);
-      const netProfit = grossProfit - totalExpenses;
 
       setSummary({
         totalRevenue,
         grossProfit,
         totalExpenses,
-        netProfit,
+        netProfit: grossProfit - totalExpenses,
       });
-
       setBest(salesData.bestSellingProducts || []);
       setSlow(salesData.slowSellingProducts || []);
     } catch (err) {
@@ -72,66 +71,81 @@ const Reports = () => {
     }
   };
 
-  useEffect(() => { fetchReport(); }, [startDate, endDate]);
+  useEffect(() => {
+    fetchReport();
+  }, [startDate, endDate]);
 
   return (
-    <div className='p-6 max-w-7xl mx-auto'>
-      <div className='flex items-center justify-between mb-6'>
-        <h1 className='text-3xl font-bold'>Reports</h1>
-        <div className='flex gap-2'>
-          <button className='bg-black text-white px-4 py-2 rounded-full'>Export Report</button>
-        </div>
-      </div>
-
-      <div className='bg-white rounded-lg p-4 mb-6'>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+    <div className="mx-auto max-w-7xl space-y-6 p-6">
+      <section className="glass-panel relative overflow-hidden rounded-[2rem] border border-white/10 px-6 py-8 shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.14),transparent_35%)]" />
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <label className='text-sm text-gray-500'>Start Date</label>
-            <input type='date' className='w-full px-3 py-2 border rounded' value={startDate} onChange={(e)=> setStartDate(e.target.value)} />
+            <p className="text-xs uppercase tracking-[0.35em] text-[var(--muted)]">Reports Studio</p>
+            <h1 className="mt-4 text-3xl font-semibold text-[var(--text)]">Revenue, profit and category flow at a glance.</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
+              Filter your reporting window, review sales momentum, and track where expenses are stacking up.
+            </p>
+          </div>
+          <button className="rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-medium text-white shadow-lg shadow-sky-500/20 transition hover:opacity-90">
+            Export Report
+          </button>
+        </div>
+      </section>
+
+      <section className="glass-panel rounded-[1.75rem] border border-white/10 p-4 shadow-xl">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div>
+            <label className="text-sm text-[var(--muted)]">Start Date</label>
+            <input type="date" className="theme-input mt-2 w-full rounded-xl px-3 py-2" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </div>
           <div>
-            <label className='text-sm text-gray-500'>End Date</label>
-            <input type='date' className='w-full px-3 py-2 border rounded' value={endDate} onChange={(e)=> setEndDate(e.target.value)} />
+            <label className="text-sm text-[var(--muted)]">End Date</label>
+            <input type="date" className="theme-input mt-2 w-full rounded-xl px-3 py-2" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </div>
-          <div className='flex items-end justify-end'>
-            <button onClick={fetchReport} className='px-4 py-2 bg-blue-600 text-white rounded-full'>Apply</button>
+          <div className="flex items-end justify-end">
+            <button onClick={fetchReport} className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-[var(--text)] transition hover:bg-white/15">Apply</button>
           </div>
         </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <SummaryCard title="Total Revenue" value={formatCurrency(summary.totalRevenue)} />
+        <SummaryCard title="Gross Profit" value={formatCurrency(summary.grossProfit)} />
+        <SummaryCard title="Total Expenses" value={formatCurrency(summary.totalExpenses)} />
+        <SummaryCard title="Net Profit" value={formatCurrency(summary.netProfit)} />
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
-        <SummaryCard title='Total Revenue' value={formatCurrency(summary.totalRevenue)} />
-        <SummaryCard title='Gross Profit' value={formatCurrency(summary.grossProfit)} />
-        <SummaryCard title='Total Expenses' value={formatCurrency(summary.totalExpenses)} />
-        <SummaryCard title='Net Profit' value={formatCurrency(summary.netProfit)} />
-      </div>
-
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
-        <div className='lg:col-span-2'>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
           <SalesChart startDate={startDate} endDate={endDate} />
         </div>
-        <div className='space-y-4'>
+        <div className="space-y-4">
           <ExpensesByCategory startDate={startDate} endDate={endDate} />
           <MonthlyProfitChart months={6} />
         </div>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mt-6'>
-        <div className='bg-white rounded-lg p-6 shadow'>
-          <h3 className='text-lg font-medium mb-4'>Best-Selling Products</h3>
-          {best.length === 0 ? <div className='text-sm text-gray-500'>No data</div> : (
-            best.map(item => (
-              <ProductListItem key={item.productId} title={item.name || 'Unknown'} sub={`${formatNumber(item.quantitySold || 0)} units sold`} value={formatCurrency(item.revenue || 0)} />
-            ))
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="glass-panel rounded-[1.75rem] border border-white/10 p-6 shadow-xl">
+          <h3 className="mb-4 text-lg font-medium text-[var(--text)]">Best-Selling Products</h3>
+          {best.length === 0 ? <div className="text-sm text-[var(--muted)]">No data</div> : (
+            <div className="space-y-3">
+              {best.map((item) => (
+                <ProductListItem key={item.productId} title={item.name || 'Unknown'} sub={`${formatNumber(item.quantitySold || 0)} units sold`} value={formatCurrency(item.revenue || 0)} />
+              ))}
+            </div>
           )}
         </div>
 
-        <div className='bg-white rounded-lg p-6 shadow'>
-          <h3 className='text-lg font-medium mb-4'>Slow-Selling Products</h3>
-          {slow.length === 0 ? <div className='text-sm text-gray-500'>No data</div> : (
-            slow.map(item => (
-              <ProductListItem key={item.productId} title={item.name || 'Unknown'} sub={`Stock: ${formatNumber(item.product?.quantity || 0)} units`} value={`${formatNumber(item.quantitySold || 0)} sold`} />
-            ))
+        <div className="glass-panel rounded-[1.75rem] border border-white/10 p-6 shadow-xl">
+          <h3 className="mb-4 text-lg font-medium text-[var(--text)]">Slow-Selling Products</h3>
+          {slow.length === 0 ? <div className="text-sm text-[var(--muted)]">No data</div> : (
+            <div className="space-y-3">
+              {slow.map((item) => (
+                <ProductListItem key={item.productId} title={item.name || 'Unknown'} sub={`Stock: ${formatNumber(item.product?.quantity || 0)} units`} value={`${formatNumber(item.quantitySold || 0)} sold`} tone="amber" />
+              ))}
+            </div>
           )}
         </div>
       </div>

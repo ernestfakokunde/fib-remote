@@ -7,7 +7,7 @@ import { notifyExpenseRecorded } from '../services/notificationService.js';
 export const createExpense = async (req, res) => {
   try {
     const { amount, description, category, date } = req.body;
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
 
     if (amount === undefined || !category) {
       return res.status(400).json({ success: false, message: 'Amount and category are required' });
@@ -49,7 +49,7 @@ export const createExpense = async (req, res) => {
 // Get paginated expenses with filters
 export const getAllExpenses = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -92,7 +92,7 @@ export const getAllExpenses = async (req, res) => {
 // Delete an expense
 export const deleteExpense = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     const { id } = req.params;
     const deleted = await Expense.findOneAndDelete({ _id: id, createdBy: userId });
     if (!deleted) return res.status(404).json({ success: false, message: 'Expense not found' });
@@ -106,7 +106,7 @@ export const deleteExpense = async (req, res) => {
 // Summary endpoint: total expenses, transactions, categories count, average
 export const getExpensesSummary = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.workspaceOwnerId;
     // Optional date filtering (to align with reports page filters)
     const { filter, start, end, category } = req.query;
     const now = new Date();

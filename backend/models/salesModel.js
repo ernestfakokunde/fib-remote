@@ -12,6 +12,7 @@ const salesSchema = new mongoose.Schema(
     date: { type: Date, default: Date.now },
     customer: { type: String, default: "Walk-in Customer", trim: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true }
 );

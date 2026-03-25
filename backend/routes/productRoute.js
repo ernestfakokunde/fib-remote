@@ -4,11 +4,11 @@ import {
   getSingleProduct,
   getAllProducts,
 } from "../controllers/productController.js";
-import { Protect } from "../middlewares/Authentication.js";
+import { Protect, requireRoles } from "../middlewares/Authentication.js";
 
 const router = express.Router();
 
-router.post("/", Protect, createProduct);
+router.post("/", Protect, requireRoles("admin"), createProduct);
 router.get("/", Protect, getAllProducts);
 router.get("/:id", Protect, getSingleProduct);
 
