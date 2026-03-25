@@ -1,22 +1,12 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useGlobalContext } from '../context/context';
 import { Sun, Moon, Menu, Bell, Command, X } from 'lucide-react';
 import CommandPalette from './CommandPalette';
 import NotificationsPanel from './NotificationsPanel';
-
-const titleMap = {
-  '/': 'Dashboard',
-  '/products': 'Products',
-  '/stock-in': 'Stock In',
-  '/stock-out': 'Stock Out',
-  '/expenses': 'Expenses',
-  '/reports': 'Reports',
-  '/settings': 'Settings',
-};
+import useNotifications from '../hooks/useNotifications';
 
 const TopBar = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const {
     user,
@@ -30,16 +20,20 @@ const TopBar = () => {
     closePalette,
   } = useGlobalContext();
   const [areNotificationsOpen, setAreNotificationsOpen] = useState(false);
-
-  const path = location.pathname === '/' ? '/' : location.pathname;
-  const title = titleMap[path] || 'Inventory Management System';
+  const { notifications, loading, unreadCount, markAsRead } = useNotifications();
 
   const handleLogout = () => {
     logout();
   };
 
+  const handleNotificationClick = async (notification) => {
+    if (!notification.isRead) {
+      await markAsRead(notification._id);
+    }
+  };
+
   return (
-    <header className='w-full bg-[var(--topbar)] border-b border-[var(--border)] flex items-center justify-between px-6 py-3 mb-4'>
+    <header className='glass-panel mb-4 flex w-full items-center justify-between border px-6 py-3'>
       <div className='flex items-center gap-4'>
         <button
           onClick={toggleSidebar}
@@ -78,17 +72,28 @@ const TopBar = () => {
         <div className='relative'>
           <button
             onClick={() => setAreNotificationsOpen((prev) => !prev)}
-            className='inline-flex items-center justify-center p-2 rounded-full hover:bg-[var(--surface)]'
+            className='relative inline-flex items-center justify-center rounded-full p-2 hover:bg-[var(--surface)]'
           >
             <Bell size={18} />
+            {unreadCount > 0 && (
+              <span className='absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--primary)] px-1 text-[10px] font-semibold text-white'>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
-          <NotificationsPanel isOpen={areNotificationsOpen} />
+          <NotificationsPanel
+            isOpen={areNotificationsOpen}
+            notifications={notifications}
+            loading={loading}
+            unreadCount={unreadCount}
+            onNotificationClick={handleNotificationClick}
+          />
         </div>
 
         <div className='flex items-center gap-3'>
           <div className='hidden sm:flex flex-col items-end'>
             <span className='text-sm font-medium text-[var(--text)]'>
-              {user?.name || user?.fullName || 'User'}
+              {user?.username || user?.name || user?.fullName || 'User'}
             </span>
             <span className='text-xs text-[var(--muted)]'>{user?.email}</span>
           </div>
