@@ -76,7 +76,7 @@ const Reports = () => {
   }, [startDate, endDate]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
+    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
       <section className="glass-panel relative overflow-hidden rounded-[2rem] border border-white/10 px-6 py-8 shadow-xl">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.14),transparent_35%)]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -117,10 +117,10 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <SalesChart startDate={startDate} endDate={endDate} />
         </div>
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <ExpensesByCategory startDate={startDate} endDate={endDate} />
           <MonthlyProfitChart months={6} />
         </div>

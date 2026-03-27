@@ -56,24 +56,26 @@ const ExpensesByCategory = ({ startDate, endDate }) => {
     fetchData();
   }, [startDate, endDate]);
 
+  const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 640;
+
   return (
-    <div className="glass-panel rounded-[1.6rem] border border-white/10 p-4 shadow-xl" style={{ height: 340 }}>
+    <div className="glass-panel flex h-[300px] min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/10 p-3 shadow-xl sm:h-[340px] sm:rounded-[1.6rem] sm:p-4">
       <h3 className="mb-3 text-lg font-medium text-[var(--text)]">Expenses by Category</h3>
       {loading ? (
         <div className="py-12 text-center text-[var(--muted)]">Loading...</div>
       ) : (
-        <div style={{ width: '100%', height: '100%' }}>
+        <div className="min-w-0 flex-1">
           <Doughnut
             data={chartData}
             options={{
               maintainAspectRatio: false,
               plugins: {
                 legend: {
-                  position: 'right',
+                  position: isSmallScreen ? 'bottom' : 'right',
                   labels: {
                     color: '#94a3b8',
-                    boxWidth: 14,
-                    padding: 16,
+                    boxWidth: 12,
+                    padding: isSmallScreen ? 12 : 16,
                   },
                 },
               },

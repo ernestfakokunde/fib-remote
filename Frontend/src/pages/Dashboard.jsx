@@ -32,7 +32,7 @@ const Dashboard = () => {
         Welcome Back, Here's what is happening today
       </p>
 
-      <div className='grid lg:grid-cols-4 md:grid-cols-2 p-5 gap-4'>
+      <div className='grid gap-4 p-3 md:grid-cols-2 sm:p-4 lg:grid-cols-4 lg:p-5'>
         <div className='animate-fade-up' style={{ animationDelay: '160ms' }}>
           <DashboardCard
             title='Total Products'
@@ -64,16 +64,16 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className='p-5 sm:p-3 grid lg:grid-cols-2 md:grid-cols-2 gap-4'>
-        <div className='animate-pop-in' style={{ animationDelay: '460ms' }}>
+      <div className='grid gap-4 p-3 sm:p-4 md:grid-cols-2 lg:grid-cols-2 lg:p-5'>
+        <div className='animate-pop-in min-w-0' style={{ animationDelay: '460ms' }}>
           <SalesChart />
         </div>
-        <div className='animate-pop-in' style={{ animationDelay: '540ms' }}>
+        <div className='animate-pop-in min-w-0' style={{ animationDelay: '540ms' }}>
           <MonthlyProfitChart months={6} />
         </div>
       </div>
 
-      <div className='p-5 grid lg:grid-cols-2 gap-4 md:grid-cols-2'>
+      <div className='grid gap-4 p-3 md:grid-cols-2 sm:p-4 lg:grid-cols-2 lg:p-5'>
         {/** Add  action button here */}
         <div className='animate-fade-up grid grid-cols-2 gap-4 mt-4' style={{ animationDelay: '620ms' }}>
           <div className='animate-pop-in' style={{ animationDelay: '680ms' }}>
@@ -115,7 +115,7 @@ const Dashboard = () => {
         </div>
 
       </div>
-      <div className='animate-fade-up p-5 grid grid-cols-1 gap-4' style={{ animationDelay: '920ms' }}>
+      <div className='animate-fade-up grid grid-cols-1 gap-4 p-3 sm:p-4 lg:p-5' style={{ animationDelay: '920ms' }}>
         <RecentActivities />
       </div>
       
