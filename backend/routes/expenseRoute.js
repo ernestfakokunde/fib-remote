@@ -4,9 +4,9 @@ import { createExpense, getAllExpenses, deleteExpense, getExpensesSummary } from
 
 const router = express.Router();
 
-router.post('/addExpense', Protect, requireRoles("admin"), createExpense);
-router.get('/getAllExpenses', Protect, requireRoles("admin"), getAllExpenses);
-router.delete('/delete/:id', Protect, requireRoles("admin"), deleteExpense);
-router.get('/summary', Protect, requireRoles("admin"), getExpensesSummary);
+router.post('/addExpense', Protect, requireRoles("manager"), createExpense);
+router.get('/getAllExpenses', Protect, requireRoles("manager"), getAllExpenses);
+router.delete('/delete/:id', Protect, requireRoles("manager"), deleteExpense);
+router.get('/summary', Protect, requireRoles("manager"), getExpensesSummary);
 
 export default router;

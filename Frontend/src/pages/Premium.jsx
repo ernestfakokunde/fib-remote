@@ -146,7 +146,7 @@ const Premium = () => {
                     </button>
                   ) : (
                     <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium text-[var(--text)]">
-                      View only. Ask your admin to upgrade this workspace.
+                      View only. Ask your manager to upgrade this workspace.
                     </div>
                   )
                 )}
@@ -165,7 +165,7 @@ const Premium = () => {
               Let your catalog grow without friction.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
-              Start with a clean premium CTA now, then connect this button to your billing or admin plan-change
+              Start with a clean premium CTA now, then connect this button to your billing or manager plan-change
               flow when you are ready.
             </p>
           </div>

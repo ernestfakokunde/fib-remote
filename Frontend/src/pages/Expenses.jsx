@@ -134,20 +134,20 @@ const Expenses = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="page-shell max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Expenses</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setCatModal(true)}
-            className="bg-green-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
+            className="theme-btn-secondary rounded-full px-4 py-2 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Category
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
+            className="theme-btn-primary rounded-full px-4 py-2 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Expense
@@ -175,23 +175,23 @@ const Expenses = () => {
       </div>
 
       {/* Table for md and larger screens */}
-      <div className="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
+      <div className="hidden lg:block bg-[var(--card)] rounded-lg shadow overflow-hidden border border-[var(--border)]">
         <table className="min-w-full divide-y">
-          <thead className="bg-white">
+          <thead className="bg-[var(--surface)]">
             <tr>
-              <th className="px-6 py-3 text-left text-sm text-gray-500">
+              <th className="px-6 py-3 text-left text-sm text-[var(--muted)]">
                 Category
               </th>
-              <th className="px-6 py-3 text-left text-sm text-gray-500">
+              <th className="px-6 py-3 text-left text-sm text-[var(--muted)]">
                 Amount
               </th>
-              <th className="px-6 py-3 text-left text-sm text-gray-500">
+              <th className="px-6 py-3 text-left text-sm text-[var(--muted)]">
                 Description
               </th>
-              <th className="px-6 py-3 text-left text-sm text-gray-500">
+              <th className="px-6 py-3 text-left text-sm text-[var(--muted)]">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-sm text-gray-500">
+              <th className="px-6 py-3 text-left text-sm text-[var(--muted)]">
                 Actions
               </th>
             </tr>
@@ -205,7 +205,7 @@ const Expenses = () => {
               </tr>
             ) : (
               expenses.map((exp) => (
-                <tr key={exp._id} className="hover:bg-gray-50">
+                <tr key={exp._id} className="hover:bg-[var(--surface)]">
                   <td className="px-6 py-4">
                     <span
                       className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium"
@@ -218,7 +218,7 @@ const Expenses = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">{formatCurrency(exp.amount)}</td>
-                  <td className="px-6 py-4 text-gray-600">
+                  <td className="px-6 py-4 text-[var(--muted)]">
                     {exp.description}
                   </td>
                   <td className="px-6 py-4">
@@ -249,7 +249,7 @@ const Expenses = () => {
           expenses.map((exp) => (
             <div
               key={exp._id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+              className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)] p-4"
             >
               <div className="flex items-center justify-between">
                 <span
@@ -265,8 +265,8 @@ const Expenses = () => {
                   {formatCurrency(exp.amount)}
                 </span>
               </div>
-              <p className="mt-2 text-gray-600">{exp.description}</p>
-              <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
+              <p className="mt-2 text-[var(--muted)]">{exp.description}</p>
+              <div className="mt-2 flex items-center justify-between text-sm text-[var(--muted)]">
                 <span>{new Date(exp.date).toLocaleDateString()}</span>
                 <button
                   onClick={() => handleDelete(exp._id)}

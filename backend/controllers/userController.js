@@ -15,10 +15,11 @@ const generateSalespersonPassword = () => {
 };
 
 const getEffectiveRole = (user) => {
-  if (!user) return 'admin';
+  if (!user) return 'manager';
+  if (user.role === 'admin') return 'manager';
   if (user.role) return user.role;
   if (user.isAdmin === false) return 'salesperson';
-  return 'admin';
+  return 'manager';
 };
 
 const getWorkspaceUser = async (user) => {
@@ -47,7 +48,7 @@ const buildProfilePayload = async (user) => {
     username: user.username,
     email: user.email,
     role,
-    isAdmin: role === 'admin',
+    isAdmin: role === 'manager',
     ownerAdmin: user.ownerAdmin || null,
     workspaceOwnerId: workspaceOwnerId?.toString?.() || workspaceOwnerId || null,
     subscriptionPlan,
@@ -83,12 +84,12 @@ export const Register = async (req, res) => {
       email: email.trim().toLowerCase(),
       password: hashedPassword,
       subscriptionPlan: 'free',
-      role: 'admin',
+      role: 'manager',
       isAdmin: true,
     });
 
     res.status(201).json({
-      message: 'Admin workspace created successfully',
+      message: 'Manager workspace created successfully',
       user: await buildProfilePayload(newUser),
     });
   } catch (error) {
@@ -134,8 +135,8 @@ export const Login = async (req, res) => {
 
 export const createSalesperson = async (req, res) => {
   try {
-    if (getEffectiveRole(req.user) !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can create salesperson accounts' });
+    if (getEffectiveRole(req.user) !== 'manager') {
+      return res.status(403).json({ message: 'Only managers can create salesperson accounts' });
     }
 
     const { username, email } = req.body;
@@ -186,8 +187,8 @@ export const createSalesperson = async (req, res) => {
 
 export const getSalespeople = async (req, res) => {
   try {
-    if (getEffectiveRole(req.user) !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can view salesperson accounts' });
+    if (getEffectiveRole(req.user) !== 'manager') {
+      return res.status(403).json({ message: 'Only managers can view salesperson accounts' });
     }
 
     const salespeople = await User.find({ ownerAdmin: req.user._id, role: 'salesperson' })

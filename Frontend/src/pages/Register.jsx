@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context.jsx';
-import logo from '../assets/logo.png';
+import SpectraLogo from '../assets/spectra.png';
 
 const Register = () => {
   const { Register, loading } = useGlobalContext();
-  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     username: '',
@@ -53,23 +52,25 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--bg)] to-[var(--surface)] px-4">
-      <div className="bg-[var(--card)] shadow-xl rounded-3xl p-8 sm:p-10 max-w-md w-full border border-[var(--border)]">
-        <img
-          src={logo}
-          className='w-23 h-23 text-center justify-center flex'
-          alt='Inventory Pro Logo'
-        />
-
-        <h2 className="text-2xl font-semibold text-center mt-4 text-[var(--text)]">
-          Create your admin workspace
-        </h2>
-        <p className="text-[var(--muted)] text-center text-sm mb-3">
-          Build the main account that controls products, plans, inventory access, and staff permissions.
-        </p>
-        <p className="text-[var(--muted)] text-center text-xs mb-8">
-          Salesperson sub-accounts are created later by the admin with generated passwords.
-        </p>
+    <div
+      className="flex min-h-screen items-center justify-center px-4 py-10"
+      style={{ backgroundImage: 'var(--gradient)' }}
+    >
+      <div className="glass-panel w-full max-w-md rounded-[2rem] border border-white/10 p-8 shadow-2xl sm:p-10">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-4 rounded-3xl bg-white/10 p-4 ring-1 ring-white/10">
+            <img src={SpectraLogo} className='h-16 w-16 object-contain' alt='Spectra' />
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+            Spectra
+          </p>
+          <h2 className="mt-3 text-3xl font-semibold text-[var(--text)]">
+            Create account
+          </h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Set up your workspace in a few details.
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -83,13 +84,13 @@ const Register = () => {
               value={username}
               onChange={handleChange}
               placeholder='Choose a username'
-              className="w-full outline-none mt-1 p-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] focus:ring-2 focus:ring-[var(--primary)]"
+              className="theme-input mt-1 rounded-2xl px-4 py-3"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium text-[var(--text)]">
-              Email Address
+              Email address
             </label>
             <input
               type='email'
@@ -98,7 +99,7 @@ const Register = () => {
               value={email}
               onChange={handleChange}
               placeholder='Enter your email'
-              className="w-full outline-none mt-1 p-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] focus:ring-2 focus:ring-[var(--primary)]"
+              className="theme-input mt-1 rounded-2xl px-4 py-3"
             />
           </div>
 
@@ -114,7 +115,7 @@ const Register = () => {
               placeholder='Create a strong password'
               value={password}
               onChange={handleChange}
-              className="w-full mt-1 outline-none p-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] focus:ring-2 focus:ring-[var(--primary)]"
+              className="theme-input mt-1 rounded-2xl px-4 py-3"
             />
           </div>
 
@@ -130,20 +131,20 @@ const Register = () => {
               placeholder='Confirm your password'
               value={confirmPassword}
               onChange={handleChange}
-              className="w-full mt-1 outline-none p-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] focus:ring-2 focus:ring-[var(--primary)]"
+              className="theme-input mt-1 rounded-2xl px-4 py-3"
             />
           </div>
 
           <button
             type='submit'
             disabled={loading}
-            className="w-full mt-2 py-3 bg-[var(--primary)] text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
+            className="theme-btn-primary mt-2 w-full rounded-2xl py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
-        <p className="text-center text-sm mt-4 text-[var(--muted)]">
+        <p className="mt-5 text-center text-sm text-[var(--muted)]">
           Already have an account?{' '}
           <Link to='/login' className="text-[var(--primary)] font-medium">
             Sign in

@@ -12,14 +12,13 @@ import {
   Users,
   Settings,
   Zap,
-  Command,
   X,
-  Menu, // Added Command icon
+  Menu,
 } from 'lucide-react';
 import SpectraLogo from '../assets/spectra.png';
 
 const Sidebar = () => {
-  const { sidebarOpen, toggleSidebar, openPalette, permissions } = useGlobalContext();
+  const { sidebarOpen, toggleSidebar, permissions } = useGlobalContext();
 
   return (
     <div
@@ -59,17 +58,6 @@ const Sidebar = () => {
           {permissions.canAccessSettings ? <NavItem to='/settings' label='Settings' Icon={Settings} /> : null}
           {permissions.canViewPremium ? <NavItem to='/premium' label='Premium' Icon={Zap} /> : null}
         </nav>
-      </div>
-
-      {/* AI Command and User */}
-      <div className='mt-auto'>
-        <button
-          onClick={openPalette}
-          className='flex items-center gap-3 p-3 rounded-xl text-[var(--text)] hover:bg-[var(--surface)] w-full'
-        >
-          <Command size={20} />
-          <span>AI Command</span>
-        </button>
       </div>
     </div>
   );

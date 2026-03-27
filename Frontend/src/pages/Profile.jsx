@@ -135,7 +135,7 @@ const Profile = () => {
               <p className="text-sm font-medium text-[var(--text)]">What this page is for</p>
               <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
                 {isSalesperson
-                  ? 'Your salesperson sub-account works inside the admin workspace. You can record sales, update stock-in, and view products while restricted areas stay locked.'
+                  ? 'Your salesperson sub-account works inside the manager workspace. You can record sales, update stock-in, and view products while restricted areas stay locked.'
                   : 'Use your profile page as the account overview: who the user is, which plan they are on, how much product capacity they have used, and where to go next when they want more room.'}
               </p>
             </div>

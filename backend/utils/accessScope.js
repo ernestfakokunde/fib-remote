@@ -14,16 +14,17 @@ export const getProductLimit = (plan) => {
 };
 
 export const buildPermissions = (role) => {
-  const isAdmin = role === "admin";
+  const normalizedRole = role === "admin" ? "manager" : role;
+  const isManager = normalizedRole === "manager";
 
   return {
-    canManageProducts: isAdmin,
-    canCreateProduct: isAdmin,
-    canManageCategories: isAdmin,
-    canAccessExpenses: isAdmin,
-    canAccessReports: isAdmin,
-    canAccessSettings: isAdmin,
-    canManagePremium: isAdmin,
+    canManageProducts: isManager,
+    canCreateProduct: isManager,
+    canManageCategories: isManager,
+    canAccessExpenses: isManager,
+    canAccessReports: isManager,
+    canAccessSettings: isManager,
+    canManagePremium: isManager,
     canViewPremium: true,
     canRecordSales: true,
     canRecordStockIn: true,

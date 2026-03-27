@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGlobalContext } from '../context/context.jsx';
 import { toast } from 'react-toastify';
-import logo from '../assets/logo.png';
+import SpectraLogo from '../assets/spectra.png';
 
 const Login = () => {
   const { Login, loading } = useGlobalContext();
-  const [loginMode, setLoginMode] = useState('admin');
-
+  const [loginMode, setLoginMode] = useState('manager');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -30,67 +29,61 @@ const Login = () => {
   };
 
   return (
-    <div className='min-h-screen flex item-center justify-center bg-gradient-to-br from-[var(--bg)] to-[var(--surface)] px-4 '>
-      <div className="bg-[var(--card)] shadow-xl rounded-3xl p-8 sm:p-10 max-w-md w-full border border-[var(--border)]">
-        {/* Logo Placeholder */}
-        <img
-          src={logo}
-          className='w-23 h-23 justify-center text-center flex'
-          alt='Inventory Pro Logo'
-        />
+    <div
+      className='flex min-h-screen items-center justify-center px-4 py-10'
+      style={{ backgroundImage: 'var(--gradient)' }}
+    >
+      <div className="glass-panel w-full max-w-md rounded-[2rem] border border-white/10 p-8 shadow-2xl sm:p-10">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-4 rounded-3xl bg-white/10 p-4 ring-1 ring-white/10">
+            <img src={SpectraLogo} className='h-16 w-16 object-contain' alt='Spectra' />
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
+            Spectra
+          </p>
+          <h2 className="mt-3 text-3xl font-semibold text-[var(--text)]">
+            Sign in
+          </h2>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Simple access to your inventory workspace.
+          </p>
+        </div>
 
-        <h2 className="text-2xl font-semibold text-center mt-4 text-[var(--text)]">
-          Access your inventory workspace
-        </h2>
-        <div className="mt-5 mb-5 flex rounded-full border border-[var(--border)] bg-[var(--surface)] p-1">
+        <div className="mb-6 flex rounded-full border border-[var(--border)] bg-[var(--surface)]/70 p-1">
           <button
             type="button"
-            onClick={() => setLoginMode('admin')}
-            className={`flex-1 rounded-full px-4 py-2 text-sm transition ${
-              loginMode === 'admin'
-                ? 'bg-[var(--primary)] text-white'
+            onClick={() => setLoginMode('manager')}
+            className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
+              loginMode === 'manager'
+                ? 'bg-[var(--primary)] text-white shadow-sm'
                 : 'text-[var(--muted)]'
             }`}
           >
-            Login as admin
+            Manager
           </button>
           <button
             type="button"
             onClick={() => setLoginMode('salesperson')}
-            className={`flex-1 rounded-full px-4 py-2 text-sm transition ${
+            className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
               loginMode === 'salesperson'
-                ? 'bg-[var(--primary)] text-white'
+                ? 'bg-[var(--primary)] text-white shadow-sm'
                 : 'text-[var(--muted)]'
             }`}
           >
-            Login as salesperson
+            Salesperson
           </button>
         </div>
-        {loginMode === 'admin' ? (
-          <>
-            <p className="text-[var(--muted)] text-center text-sm mb-3">
-              Admin accounts have full control across products, settings, plans, and staff access.
-            </p>
-            <p className="text-[var(--muted)] text-center text-xs mb-8">
-              Use your main workspace credentials to manage products, plans, reports, and team accounts.
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-[var(--muted)] text-center text-sm mb-3">
-              Salesperson sub-accounts use credentials created by the admin.
-            </p>
-            <p className="text-[var(--muted)] text-center text-xs mb-8">
-              Salesperson access is limited to stock-in, sales recording, and viewing products inside the assigned workspace.
-            </p>
-          </>
-        )}
 
-        <form className="space-y-4">
-          {/* Email */}
+        <p className="mb-4 text-center text-sm text-[var(--muted)]">
+          {loginMode === 'manager'
+            ? 'Use your main workspace account.'
+            : 'Use the salesperson credentials created for you.'}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-sm font-medium text-[var(--text)]">
-              Email or Username
+              Email or username
             </label>
             <input
               type='text'
@@ -99,11 +92,10 @@ const Login = () => {
               value={email}
               required
               placeholder='Enter your email or username'
-              className="w-full mt-1 p-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] focus:ring-2 focus:ring-[var(--primary)] outline-none"
+              className="theme-input mt-1 rounded-2xl px-4 py-3"
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="text-sm font-medium text-[var(--text)]">
               Password
@@ -116,23 +108,20 @@ const Login = () => {
               onChange={handleChange}
               required
               placeholder='Enter your password'
-              className="w-full mt-1 outline-none p-3 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] focus:ring-2 focus:ring-[var(--primary)]"
+              className="theme-input mt-1 rounded-2xl px-4 py-3"
             />
           </div>
 
-          {/* Submit Button */}
           <button
-            onClick={handleSubmit}
             type='submit'
             disabled={loading}
-            className="w-full mt-2 py-3 bg-[var(--primary)] text-white font-medium rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
+            className="theme-btn-primary mt-2 w-full rounded-2xl py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Logging in...' : 'Log In'}
           </button>
         </form>
 
-        {/* Sign In Link */}
-        <p className="text-center text-sm mt-4 text-[var(--muted)]">
+        <p className="mt-5 text-center text-sm text-[var(--muted)]">
           Don't have an account?{' '}
           <Link to='/register' className="text-[var(--primary)] font-medium">
             Sign Up

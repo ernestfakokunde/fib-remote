@@ -4,10 +4,11 @@ import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context';
 
 const getEffectiveRole = (user) => {
-  if (!user) return 'admin';
+  if (!user) return 'manager';
+  if (user.role === 'admin') return 'manager';
   if (user.role) return user.role;
   if (user.isAdmin === false) return 'salesperson';
-  return 'admin';
+  return 'manager';
 };
 
 const ProtectedRoute = ({ children, allowedRoles = null, redirectTo = '/' }) => {

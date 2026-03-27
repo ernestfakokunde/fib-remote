@@ -1,6 +1,9 @@
 import Products from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
 import User from "../models/userModel.js";
+import Sales from "../models/salesModel.js";
+import Purchase from "../models/purchaseModel.js";
+import mongoose from "mongoose";
 import { getProductLimit } from "../utils/accessScope.js";
 import {
   notifyLowStock,
@@ -20,8 +23,8 @@ const getStockStatus = (quantity, reOrderLevel = 10) => {
 
 export const createProduct = async (req, res) => {
   try {
-    if (req.user?.role !== "admin") {
-      return res.status(403).json({ message: "Only admins can add products" });
+    if (req.user?.role !== "manager") {
+      return res.status(403).json({ message: "Only managers can add products" });
     }
 
     const workspaceOwnerId = req.workspaceOwnerId;
@@ -131,6 +134,51 @@ export const createProduct = async (req, res) => {
       return res.status(409).json({ message: `${dupKey || 'Field'} already exists`, details: { [dupKey]: dupVal } });
     }
     res.status(500).json({ message: "Server error product creation failed try again" });
+  }
+};
+
+export const deleteProduct = async (req, res) => {
+  try {
+    if (req.user?.role !== "manager") {
+      return res.status(403).json({ message: "Only managers can delete products" });
+    }
+
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Invalid product ID" });
+    }
+
+    const workspaceOwnerId = req.workspaceOwnerId;
+    const product = await Products.findOne({ _id: id, createdBy: workspaceOwnerId })
+      .select("_id name")
+      .lean();
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    const [hasSales, hasPurchases] = await Promise.all([
+      Sales.exists({ product: id, createdBy: workspaceOwnerId }),
+      Purchase.exists({ product: id, createdBy: workspaceOwnerId }),
+    ]);
+
+    if (hasSales || hasPurchases) {
+      return res.status(400).json({
+        success: false,
+        message: "Product has stock history and cannot be deleted",
+      });
+    }
+
+    await Products.deleteOne({ _id: id, createdBy: workspaceOwnerId });
+
+    return res.json({
+      success: true,
+      message: "Product deleted successfully",
+      deletedProductId: id,
+    });
+  } catch (error) {
+    console.error("Delete product error:", error);
+    return res.status(500).json({ success: false, message: "Failed to delete product" });
   }
 };
 

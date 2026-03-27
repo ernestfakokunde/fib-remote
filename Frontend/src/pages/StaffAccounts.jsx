@@ -80,13 +80,13 @@ const StaffAccounts = () => {
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.35em] text-[var(--muted)]">Team Access</p>
-            <h1 className="mt-4 text-3xl font-semibold text-[var(--text)]">Create salesperson sub-accounts under your admin workspace.</h1>
+            <h1 className="mt-4 text-3xl font-semibold text-[var(--text)]">Create salesperson sub-accounts under your manager workspace.</h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
               Salesperson accounts can record sales, update stock-in, and view products, but they cannot manage products, settings, reports, or premium changes.
             </p>
           </div>
           <div className="rounded-full border border-white/10 bg-white/10 px-5 py-3 text-sm text-[var(--text)]">
-            Admin-only staff management
+            Manager-only staff management
           </div>
         </div>
       </section>
@@ -99,7 +99,7 @@ const StaffAccounts = () => {
             </div>
             <div>
               <h2 className="text-xl font-semibold text-[var(--text)]">Create Salesperson Account</h2>
-              <p className="text-sm text-[var(--muted)]">Generate a sub-account and password from the admin dashboard.</p>
+              <p className="text-sm text-[var(--muted)]">Generate a sub-account and password from the manager dashboard.</p>
             </div>
           </div>
 
@@ -179,7 +179,7 @@ const StaffAccounts = () => {
           </div>
           <div>
             <h2 className="text-xl font-semibold text-[var(--text)]">Existing Salespeople</h2>
-            <p className="text-sm text-[var(--muted)]">Everyone created under this admin workspace.</p>
+            <p className="text-sm text-[var(--muted)]">Everyone created under this manager workspace.</p>
           </div>
         </div>
 

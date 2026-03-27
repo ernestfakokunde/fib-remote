@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "../context/context";
 import Modal from '../components/Modal';
@@ -55,9 +55,10 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [isSavingCategory, setIsSavingCategory] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState("");
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, total: 0 });
 
-  const { getProducts, createProduct, getCategories, createCategory, permissions, isSalesperson } = useGlobalContext();
+  const { getProducts, createProduct, deleteProduct, getCategories, createCategory, permissions, isSalesperson } = useGlobalContext();
 
   const updateProductForm = (updates) => {
     setProductForm((prev) => ({ ...prev, ...updates }));
@@ -189,9 +190,30 @@ export default function Products() {
     setShowAddModal(true);
   };
 
+  const handleDeleteProduct = async (productId) => {
+    if (!permissions.canManageProducts) {
+      toast.error("Only managers can delete products");
+      return;
+    }
+    const confirmed = window.confirm("Delete this product? This action cannot be undone.");
+    if (!confirmed) return;
+
+    setDeletingProductId(productId);
+    try {
+      const res = await deleteProduct(productId);
+      toast.success(res.data?.message || "Product deleted");
+      await fetchProducts(pagination.currentPage, searchTerm, selectedCategory);
+    } catch (error) {
+      const msg = error.response?.data?.message || "Failed to delete product";
+      toast.error(msg);
+    } finally {
+      setDeletingProductId("");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--bg)] overflow-x-hidden text-[var(--text)]">
-      <div className="p-6">
+    <div className="page-shell min-h-screen bg-[var(--bg)] overflow-x-hidden text-[var(--text)]">
+      <div>
         <div className="flex items-start justify-between flex-wrap mb-6">
           <div className="flex items-center gap-4">
             <div className="rounded-3xl bg-[var(--surface)] p-3 shadow-lg ring-1 ring-white/10">
@@ -214,7 +236,7 @@ export default function Products() {
                   : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]"
               }`}
             >
-              <Plus className="h-4 w-4" /> {permissions.canCreateProduct ? "Add Product" : "Admin Only"}
+              <Plus className="h-4 w-4" /> {permissions.canCreateProduct ? "Add Product" : "Manager Only"}
             </button>
           </div>
         </div>
@@ -265,12 +287,13 @@ export default function Products() {
                   <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Quantity</th>
                   <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Stock Value</th>
                   <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Status</th>
+                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading && (
                   <tr>
-                    <td colSpan={9} className="py-10 text-center text-[var(--muted)]">
+                    <td colSpan={10} className="py-10 text-center text-[var(--muted)]">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin text-[var(--primary)]" />
                         Loading products...
@@ -280,7 +303,7 @@ export default function Products() {
                 )}
                 {!isLoading && products.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-[var(--muted)]">
+                    <td colSpan={10} className="py-8 text-center text-[var(--muted)]">
                       No products yet.
                     </td>
                   </tr>
@@ -312,6 +335,21 @@ export default function Products() {
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
                             {derivedStatus}
                           </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          {permissions.canManageProducts ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteProduct(product._id)}
+                              disabled={deletingProductId === product._id}
+                              className="inline-flex items-center gap-2 rounded-lg border border-red-300/30 bg-red-400/10 px-3 py-1.5 text-xs text-red-600 disabled:opacity-60"
+                            >
+                              {deletingProductId === product._id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                              Delete
+                            </button>
+                          ) : (
+                            <span className="text-xs text-[var(--muted)]">View only</span>
+                          )}
                         </td>
                       </tr>
                     );
@@ -381,6 +419,19 @@ export default function Products() {
                   <div><span className="text-[var(--muted)]">Cost</span><div className="text-[var(--text)]">NGN {formatCurrency(product.costPrice)}</div></div>
                   <div><span className="text-[var(--muted)]">Stock Value</span><div className="text-[var(--text)]">NGN {formatCurrency(stockValue)}</div></div>
                 </div>
+                {permissions.canManageProducts ? (
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteProduct(product._id)}
+                      disabled={deletingProductId === product._id}
+                      className="inline-flex items-center gap-2 rounded-lg border border-red-300/30 bg-red-400/10 px-3 py-1.5 text-xs text-red-600 disabled:opacity-60"
+                    >
+                      {deletingProductId === product._id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                      Delete
+                    </button>
+                  </div>
+                ) : null}
               </div>
             );
           })}

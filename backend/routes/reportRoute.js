@@ -4,6 +4,6 @@ import { Protect, requireRoles } from "../middlewares/Authentication.js";
 
 const router = express.Router();
 
-router.get('/', Protect, requireRoles("admin"), generateSalesReport );
+router.get('/', Protect, requireRoles("manager"), generateSalesReport );
 
 export default router;

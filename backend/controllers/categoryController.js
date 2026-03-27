@@ -4,8 +4,8 @@ import Products from "../models/productModel.js";
 
 export const createCategory = async (req, res) => {
   try {
-    if (req.user?.role !== "admin") {
-      return res.status(403).json({ message: "Only admins can create categories" });
+    if (req.user?.role !== "manager") {
+      return res.status(403).json({ message: "Only managers can create categories" });
     }
     const { name, description } = req.body;
     const userId = req.workspaceOwnerId;
@@ -75,8 +75,8 @@ export const getCategories = async (req, res) => {
 
 export const updateCategory = async (req, res) => {
   try {
-    if (req.user?.role !== "admin") {
-      return res.status(403).json({ message: "Only admins can update categories" });
+    if (req.user?.role !== "manager") {
+      return res.status(403).json({ message: "Only managers can update categories" });
     }
     const userId = req.workspaceOwnerId;
     const { id } = req.params;
@@ -121,8 +121,8 @@ export const updateCategory = async (req, res) => {
 
 export const deleteCategory = async (req, res) => {
   try {
-    if (req.user?.role !== "admin") {
-      return res.status(403).json({ message: "Only admins can delete categories" });
+    if (req.user?.role !== "manager") {
+      return res.status(403).json({ message: "Only managers can delete categories" });
     }
     const userId = req.workspaceOwnerId;
     const { id } = req.params;

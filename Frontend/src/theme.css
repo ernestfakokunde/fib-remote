@@ -50,6 +50,13 @@ body {
   color: var(--text);
 }
 
+.page-shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1.5rem;
+}
+
 .glass-panel {
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--card) 86%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));

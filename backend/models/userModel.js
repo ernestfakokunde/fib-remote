@@ -5,7 +5,7 @@ const userSchema = mongoose.Schema({
   email:{ type: String, required: true, unique: true },
   password:{ type: String, required: true, minlength: 8},
   isAdmin:{ type: Boolean, default: true },
-  role: { type: String, enum: ['admin', 'salesperson'], default: 'admin' },
+  role: { type: String, enum: ['manager', 'admin', 'salesperson'], default: 'manager' },
   ownerAdmin: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

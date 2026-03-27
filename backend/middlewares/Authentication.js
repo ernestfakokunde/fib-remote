@@ -3,10 +3,11 @@ import User from "../models/userModel.js"
 import { getWorkspaceOwnerId } from "../utils/accessScope.js";
 
 const getEffectiveRole = (user) => {
-  if (!user) return "admin";
+  if (!user) return "manager";
+  if (user.role === "admin") return "manager";
   if (user.role) return user.role;
   if (user.isAdmin === false) return "salesperson";
-  return "admin";
+  return "manager";
 };
 
 export const Protect = async (req, res, next)=>{
@@ -26,7 +27,7 @@ export const Protect = async (req, res, next)=>{
     req.workspaceOwnerId = getWorkspaceOwnerId(req.user);
 
     if (req.user.role === "salesperson" && !req.user.ownerAdmin) {
-      return res.status(403).json({ message: "Salesperson account is not linked to an admin workspace" });
+      return res.status(403).json({ message: "Salesperson account is not linked to a manager workspace" });
     }
 
     next();
@@ -42,8 +43,9 @@ export const requireRoles = (...roles) => (req, res, next) => {
   }
 
   const role = getEffectiveRole(req.user);
+  const normalizedRoles = roles.map((item) => (item === "admin" ? "manager" : item));
 
-  if (!roles.includes(role)) {
+  if (!normalizedRoles.includes(role)) {
     return res.status(403).json({ message: "You are not allowed to perform this action" });
   }
 

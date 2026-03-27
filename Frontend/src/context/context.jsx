@@ -24,23 +24,25 @@ const defaultPermissions = {
 };
 
 const getEffectiveRole = (user) => {
-  if (!user) return "admin";
+  if (!user) return "manager";
+  if (user.role === "admin") return "manager";
   if (user.role) return user.role;
   if (user.isAdmin === false) return "salesperson";
-  return "admin";
+  return "manager";
 };
 
 const buildPermissionsFromRole = (role) => {
-  const isAdmin = role === "admin";
+  const normalizedRole = role === "admin" ? "manager" : role;
+  const isManager = normalizedRole === "manager";
 
   return {
-    canManageProducts: isAdmin,
-    canCreateProduct: isAdmin,
-    canManageCategories: isAdmin,
-    canAccessExpenses: isAdmin,
-    canAccessReports: isAdmin,
-    canAccessSettings: isAdmin,
-    canManagePremium: isAdmin,
+    canManageProducts: isManager,
+    canCreateProduct: isManager,
+    canManageCategories: isManager,
+    canAccessExpenses: isManager,
+    canAccessReports: isManager,
+    canAccessSettings: isManager,
+    canManagePremium: isManager,
     canViewPremium: true,
     canRecordSales: true,
     canRecordStockIn: true,
@@ -173,6 +175,11 @@ export const GlobalProvider = ({ children }) => {
       await fetchUserProfile(); // Refresh user data after product creation to update product count in profile
       return res;
     }
+    const deleteProduct = async (id) => {
+      const res = await API.delete(`/products/${id}`);
+      await fetchUserProfile();
+      return res;
+    };
 
     const getCategories = (params = {}) => API.get("/categories", { params });
     const createCategory = (data) => API.post("/categories", data);
@@ -230,7 +237,7 @@ export const GlobalProvider = ({ children }) => {
 
   const role = getEffectiveRole(user);
   const permissions = user?.permissions || buildPermissionsFromRole(role) || defaultPermissions;
-  const isAdmin = role === "admin";
+  const isAdmin = role === "manager";
   const isSalesperson = role === "salesperson";
 
   const value = {
@@ -250,6 +257,7 @@ export const GlobalProvider = ({ children }) => {
     fetchDashboardMetrics,
     getProducts,
     createProduct,
+    deleteProduct,
     getCategories,
     createCategory,
     createSalesperson,

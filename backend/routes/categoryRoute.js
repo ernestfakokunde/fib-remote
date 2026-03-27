@@ -9,9 +9,9 @@ import { Protect, requireRoles } from "../middlewares/Authentication.js";
 
 const router = express.Router();
 
-router.post("/", Protect, requireRoles("admin"), createCategory);
+router.post("/", Protect, requireRoles("manager"), createCategory);
 router.get("/", Protect, getCategories);
-router.patch("/:id", Protect, requireRoles("admin"), updateCategory);
-router.delete("/:id", Protect, requireRoles("admin"), deleteCategory);
+router.patch("/:id", Protect, requireRoles("manager"), updateCategory);
+router.delete("/:id", Protect, requireRoles("manager"), deleteCategory);
 
 export default router;

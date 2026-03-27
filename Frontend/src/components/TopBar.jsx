@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGlobalContext } from '../context/context';
-import { Sun, Moon, Menu, Bell, Command, X } from 'lucide-react';
-import CommandPalette from './CommandPalette';
+import { Sun, Moon, Menu, Bell, X } from 'lucide-react';
 import NotificationsPanel from './NotificationsPanel';
 import useNotifications from '../hooks/useNotifications';
 import SpectraLogo from '../assets/spectra.png';
@@ -17,9 +16,6 @@ const TopBar = () => {
     toggleTheme,
     sidebarOpen,
     toggleSidebar,
-    isPaletteOpen,
-    openPalette,
-    closePalette,
   } = useGlobalContext();
   const [areNotificationsOpen, setAreNotificationsOpen] = useState(false);
   const { notifications, loading, unreadCount, markAsRead } = useNotifications();
@@ -55,13 +51,6 @@ const TopBar = () => {
       </div>
 
       <div className='flex items-center gap-4'>
-        <button
-          onClick={openPalette}
-          className='hidden sm:inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--text)]'
-        >
-          <Command size={16} />
-          <span>AI Command</span>
-        </button>
         {permissions.canAccessSettings ? (
           <button
             onClick={() => navigate('/settings')}
@@ -115,10 +104,6 @@ const TopBar = () => {
           </button>
         </div>
       </div>
-      <CommandPalette
-        isOpen={isPaletteOpen}
-        onClose={closePalette}
-      />
     </header>
   );
 };

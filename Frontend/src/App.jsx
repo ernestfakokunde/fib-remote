@@ -25,15 +25,15 @@ const App = () => {
      <Routes>
           <Route path='/' element={<ProtectedRoute><Layout /></ProtectedRoute>}>
              <Route index element={<Dashboard/>}/>
-             <Route path='/stock-in' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><StockIn/></ProtectedRoute>}/>
-             <Route path='/stock-out' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><StockOut/></ProtectedRoute>}/>
-             <Route path='/expenses' element={<ProtectedRoute allowedRoles={['admin']}><Expenses/></ProtectedRoute>}/>
-             <Route path='/products' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><Products/></ProtectedRoute>}/>
-             <Route path='/reports' element={<ProtectedRoute allowedRoles={['admin']}><Reports/></ProtectedRoute>}/>
-             <Route path='/profile' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><Profile/></ProtectedRoute>}/>
-             <Route path='/premium' element={<ProtectedRoute allowedRoles={['admin','salesperson']}><Premium/></ProtectedRoute>}/>
-             <Route path='/team' element={<ProtectedRoute allowedRoles={['admin']}><StaffAccounts/></ProtectedRoute>}/>
-             <Route path='/settings' element={<ProtectedRoute allowedRoles={['admin']}><Settings/></ProtectedRoute>}/>
+             <Route path='/stock-in' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><StockIn/></ProtectedRoute>}/>
+             <Route path='/stock-out' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><StockOut/></ProtectedRoute>}/>
+             <Route path='/expenses' element={<ProtectedRoute allowedRoles={['manager']}><Expenses/></ProtectedRoute>}/>
+             <Route path='/products' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Products/></ProtectedRoute>}/>
+             <Route path='/reports' element={<ProtectedRoute allowedRoles={['manager']}><Reports/></ProtectedRoute>}/>
+             <Route path='/profile' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Profile/></ProtectedRoute>}/>
+             <Route path='/premium' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Premium/></ProtectedRoute>}/>
+             <Route path='/team' element={<ProtectedRoute allowedRoles={['manager']}><StaffAccounts/></ProtectedRoute>}/>
+             <Route path='/settings' element={<ProtectedRoute allowedRoles={['manager']}><Settings/></ProtectedRoute>}/>
           </Route>
           <Route path='/register' element={<Register />} />
           <Route path='/login' element={<Login />} />

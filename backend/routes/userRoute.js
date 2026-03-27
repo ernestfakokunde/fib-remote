@@ -17,7 +17,7 @@ router.post("/login", Login);
 router.get("/profile", Protect, getProfile);
 router.put("/profile", Protect, updateProfile);
 router.put("/change-password", Protect, changePassword);
-router.post("/salespeople", Protect, requireRoles("admin"), createSalesperson);
-router.get("/salespeople", Protect, requireRoles("admin"), getSalespeople);
+router.post("/salespeople", Protect, requireRoles("manager"), createSalesperson);
+router.get("/salespeople", Protect, requireRoles("manager"), getSalespeople);
 
 export default router;

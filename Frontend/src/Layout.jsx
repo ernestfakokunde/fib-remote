@@ -15,7 +15,7 @@ const Layout = () => {
         className={`min-h-screen transition-all duration-300 lg:pl-64`}
       >
         <TopBar />
-        <div className='px-6 pb-6'>
+        <div className='page-shell pb-6'>
           <Outlet />
           
         </div>
