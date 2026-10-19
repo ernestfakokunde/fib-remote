@@ -190,6 +190,7 @@ export const GlobalProvider = ({ children }) => {
     const getSales = (params = {}) => API.get('/sales/getAllSales', { params });
     const getSalesPerDay = (params = {}) => API.get('/sales/sales-per-day', { params });
     const getMonthlyProfit = (params = {}) => API.get('/analytics/monthly-profit', { params });
+    const getDashboardOverview = (params = {}) => API.get('/dashboard/overview', { params });
     const getReports = (params = {}) => API.get('/reports', { params });
     // Purchases API
     const createPurchase = (data) => API.post('/purchases/addPurchase', data);
@@ -266,6 +267,7 @@ export const GlobalProvider = ({ children }) => {
     	getSales,
     	getSalesPerDay,
     getMonthlyProfit,
+    getDashboardOverview,
     getReports,
     // Expenses
     createExpense,

@@ -6,9 +6,7 @@ const DashboardCard = ({ title, value, trend, Icon }) => {
       <div>
         <h3 className="text-sm font-medium text-[var(--muted)]">{title}</h3>
         <p className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text)]">{value}</p>
-        {trend && (
-          <p className="text-green-600 text-xs mt-1 font-medium">{trend}</p>
-        )}
+        {trend && <p className="mt-1 text-xs font-medium text-[var(--success)]">{trend}</p>}
       </div>
 
       <div className="rounded-xl bg-[var(--primary-soft)] p-3">

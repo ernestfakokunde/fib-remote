@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { lazy, Suspense } from 'react';
 const SalesChartView = lazy(() => import('./SalesChartView.jsx'));
 import { useGlobalContext } from '../context/context';
+import { Card, EmptyState, Skeleton } from './ui';
+import { Link } from 'react-router-dom';
 
 const SalesChart = ({ startDate, endDate }) => {
   const { getSalesPerDay } = useGlobalContext();
   const [labels, setLabels] = useState([]);
   const [values, setValues] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
@@ -42,14 +44,16 @@ const SalesChart = ({ startDate, endDate }) => {
   }, [startDate, endDate]);
 
   return (
-    <div className="glass-panel flex h-[300px] min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/10 p-3 shadow-xl sm:h-[340px] sm:rounded-[1.6rem] sm:p-4">
-      <h3 className="mb-3 text-lg font-medium text-[var(--text)]">Sales Analytics</h3>
+    <Card className="flex h-[300px] min-w-0 flex-col overflow-hidden p-4 sm:h-[340px] sm:p-5">
+      <h3 className="mb-3 text-sm font-semibold">Sales Analytics</h3>
       {loading ? (
-        <div className="py-8 text-center text-[var(--muted)]">Loading...</div>
+        <div className="flex-1 space-y-3"><Skeleton className="h-full min-h-48 w-full"/></div>
+      ) : !values.some((value)=>value>0) ? (
+        <EmptyState title="Sales data will appear here" description="Record a sale to see revenue trends over time." action={<Link to="/stock-out" className="mt-3 text-xs font-semibold text-[var(--primary)]">Record a sale</Link>}/>
       ) : (
         <Suspense fallback={<div className="min-w-0 flex-1 animate-pulse rounded-lg bg-[var(--surface)]"/>}><SalesChartView labels={labels} values={values} /></Suspense>
       )}
-    </div>
+    </Card>
   );
 };
 

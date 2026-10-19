@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { useGlobalContext } from '../context/context';
+import { Card, EmptyState, Skeleton } from './ui';
+import { Link } from 'react-router-dom';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -59,10 +61,12 @@ const ExpensesByCategory = ({ startDate, endDate }) => {
   const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 640;
 
   return (
-    <div className="glass-panel flex h-[300px] min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/10 p-3 shadow-xl sm:h-[340px] sm:rounded-[1.6rem] sm:p-4">
-      <h3 className="mb-3 text-lg font-medium text-[var(--text)]">Expenses by Category</h3>
+    <Card className="flex h-[300px] min-w-0 flex-col overflow-hidden p-4 sm:h-[340px] sm:p-5">
+      <h3 className="mb-3 text-sm font-semibold">Expenses by Category</h3>
       {loading ? (
-        <div className="py-12 text-center text-[var(--muted)]">Loading...</div>
+        <Skeleton className="h-full min-h-48 w-full"/>
+      ) : !chartData.datasets[0]?.data?.length ? (
+        <EmptyState title="Your expense breakdown will appear here" description="Record a business expense to see where your spending goes." action={<Link to="/expenses" className="mt-3 text-xs font-semibold text-[var(--primary)]">Add an expense</Link>}/>
       ) : (
         <div className="min-w-0 flex-1">
           <Doughnut
@@ -83,7 +87,7 @@ const ExpensesByCategory = ({ startDate, endDate }) => {
           />
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

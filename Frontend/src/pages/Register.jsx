@@ -1,158 +1,33 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context.jsx';
-import SpectraLogo from '../assets/spectra.png';
+import AuthShell from '../components/AuthShell.jsx';
 
-const Register = () => {
+const fieldClass = 'mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 text-sm text-[var(--text)] placeholder:text-[var(--muted)] transition focus:border-[var(--primary)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)]/10';
+
+export default function Register() {
   const { Register, loading } = useGlobalContext();
-
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-
-  const { username, email, password, confirmPassword } = formData;
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const update = (event) => setFormData((current)=>({ ...current, [event.target.name]: event.target.value }));
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (formData.password !== formData.confirmPassword) { toast.error('Passwords do not match.'); return; }
+    if (formData.password.length < 8) { toast.error('Password must be at least 8 characters long.'); return; }
+    try { await Register({ username: formData.username, email: formData.email, password: formData.password }); }
+    catch { /* The auth context displays the API error. */ }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match.');
-      return;
-    }
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters long.');
-      return;
-    }
-
-    try {
-      await Register({ username, email, password });
-      // On success, the context will navigate, so we just clear the form
-      setFormData({
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-      });
-    } catch (error) {
-      // Error toast is handled in the context's Register function
-      console.error("Registration failed:", error);
-    }
-  };
-
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center px-4 py-10"
-      style={{ backgroundImage: 'var(--gradient)' }}
-    >
-      <div className="glass-panel w-full max-w-md rounded-[2rem] border border-white/10 p-8 shadow-2xl sm:p-10">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 rounded-3xl bg-white/10 p-4 ring-1 ring-white/10">
-            <img src={SpectraLogo} className='h-16 w-16 object-contain' alt='Spectra' />
-          </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
-            Spectra
-          </p>
-          <h2 className="mt-3 text-3xl font-semibold text-[var(--text)]">
-            Create account
-          </h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Set up your workspace in a few details.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-[var(--text)]">
-              Username
-            </label>
-            <input
-              required
-              type='text'
-              name='username'
-              value={username}
-              onChange={handleChange}
-              placeholder='Choose a username'
-              className="theme-input mt-1 rounded-2xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-[var(--text)]">
-              Email address
-            </label>
-            <input
-              type='email'
-              name='email'
-              required
-              value={email}
-              onChange={handleChange}
-              placeholder='Enter your email'
-              className="theme-input mt-1 rounded-2xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-[var(--text)]">
-              Password
-            </label>
-            <input
-              type='password'
-              minLength={8}
-              name='password'
-              required
-              placeholder='Create a strong password'
-              value={password}
-              onChange={handleChange}
-              className="theme-input mt-1 rounded-2xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-[var(--text)]">
-              Confirm Password
-            </label>
-            <input
-              type='password'
-              name='confirmPassword'
-              required
-              minLength={8}
-              placeholder='Confirm your password'
-              value={confirmPassword}
-              onChange={handleChange}
-              className="theme-input mt-1 rounded-2xl px-4 py-3"
-            />
-          </div>
-
-          <button
-            type='submit'
-            disabled={loading}
-            className="theme-btn-primary mt-2 w-full rounded-2xl py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? 'Creating Account...' : 'Create Account'}
-          </button>
-        </form>
-
-        <p className="mt-5 text-center text-sm text-[var(--muted)]">
-          Already have an account?{' '}
-          <Link to='/login' className="text-[var(--primary)] font-medium">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default Register;
+  return <AuthShell title="Create your workspace" subtitle="A few details, then your business is ready to go." footer={<>Already have an account? <Link to="/login" className="ml-1 font-semibold text-[var(--primary)] hover:underline">Sign in</Link></>}>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div><label htmlFor="register-name" className="text-sm font-semibold">Your name</label><div className="relative"><UserRound size={17} className="absolute left-4 top-[1.35rem] text-[var(--muted)]"/><input id="register-name" autoComplete="name" type="text" name="username" value={formData.username} onChange={update} required placeholder="e.g. Alex Morgan" className={`${fieldClass} pl-11`}/></div></div>
+      <div><label htmlFor="register-email" className="text-sm font-semibold">Work email</label><div className="relative"><Mail size={17} className="absolute left-4 top-[1.35rem] text-[var(--muted)]"/><input id="register-email" autoComplete="email" type="email" name="email" value={formData.email} onChange={update} required placeholder="you@business.com" className={`${fieldClass} pl-11`}/></div></div>
+      <div><label htmlFor="register-password" className="text-sm font-semibold">Password</label><div className="relative"><LockKeyhole size={17} className="absolute left-4 top-[1.35rem] text-[var(--muted)]"/><input id="register-password" autoComplete="new-password" type={showPassword?'text':'password'} name="password" value={formData.password} onChange={update} required minLength={8} placeholder="At least 8 characters" className={`${fieldClass} pl-11 pr-12`}/><button type="button" onClick={()=>setShowPassword((value)=>!value)} aria-label={showPassword?'Hide password':'Show password'} className="absolute right-3 top-3 rounded-lg p-1.5 text-[var(--muted)] hover:bg-[var(--surface)]">{showPassword?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></div>
+      <div><label htmlFor="register-confirm" className="text-sm font-semibold">Confirm password</label><input id="register-confirm" autoComplete="new-password" type="password" name="confirmPassword" value={formData.confirmPassword} onChange={update} required minLength={8} placeholder="Type your password again" className={fieldClass}/></div>
+      <p className="text-xs leading-5 text-[var(--muted)]">By creating an account, you agree to use Spectra in accordance with your business policies.</p>
+      <button type="submit" disabled={loading} className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--primary)] px-4 text-sm font-bold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">{loading?'Creating your workspace…':'Create account'}</button>
+    </form>
+  </AuthShell>;
+}

@@ -5,10 +5,13 @@ import {
   getTodayProfit,
   getLowStockCount,
   getTotalProducts,
+  getDashboardOverview,
 } from "../controllers/dashboardController.js";
 import { Protect } from '../middlewares/Authentication.js';
 
 const router = express.Router();
+
+router.get("/overview", Protect, getDashboardOverview);
 
 router.get("/sales/today",  Protect, getSalesToday);
 router.get("/purchases/today",  Protect, getPurchasesToday);

@@ -1,135 +1,31 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useGlobalContext } from '../context/context.jsx';
-import { toast } from 'react-toastify';
-import SpectraLogo from '../assets/spectra.png';
+import AuthShell from '../components/AuthShell.jsx';
 
-const Login = () => {
+const fieldClass = 'mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 text-sm text-[var(--text)] placeholder:text-[var(--muted)] transition focus:border-[var(--primary)] focus:outline-none focus:ring-4 focus:ring-[var(--primary)]/10';
+
+export default function Login() {
   const { Login, loading } = useGlobalContext();
   const [loginMode, setLoginMode] = useState('manager');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'email') setEmail(value);
-    if (name === 'password') setPassword(value);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try { await Login({ email, password }); }
+    catch { /* The auth context displays the API error. */ }
   };
 
-  const handleSubmit = async (e) => {
-    try {
-      e.preventDefault();
-      await Login({ email, password });
-      setEmail('');
-      setPassword('');
-    } catch (error) {
-      toast.error('Login failed. Please try again.');
-      console.log(error);
-    }
-  };
-
-  return (
-    <div
-      className='flex min-h-screen items-center justify-center px-4 py-10'
-      style={{ backgroundImage: 'var(--gradient)' }}
-    >
-      <div className="glass-panel w-full max-w-md rounded-2xl border border-[var(--border)] p-6 shadow-[var(--shadow)] sm:p-9">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 rounded-2xl bg-[var(--primary-soft)] p-3">
-            <img src={SpectraLogo} className='h-16 w-16 object-contain' alt='Spectra' />
-          </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
-            Spectra
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">
-            Sign in
-          </h2>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Simple access to your inventory workspace.
-          </p>
-        </div>
-
-        <div className="mb-6 flex rounded-full border border-[var(--border)] bg-[var(--surface)]/70 p-1">
-          <button
-            type="button"
-            onClick={() => setLoginMode('manager')}
-            className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
-              loginMode === 'manager'
-                ? 'bg-[var(--primary)] text-white shadow-sm'
-                : 'text-[var(--muted)]'
-            }`}
-          >
-            Manager
-          </button>
-          <button
-            type="button"
-            onClick={() => setLoginMode('salesperson')}
-            className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition ${
-              loginMode === 'salesperson'
-                ? 'bg-[var(--primary)] text-white shadow-sm'
-                : 'text-[var(--muted)]'
-            }`}
-          >
-            Salesperson
-          </button>
-        </div>
-
-        <p className="mb-4 text-center text-sm text-[var(--muted)]">
-          {loginMode === 'manager'
-            ? 'Use your main workspace account.'
-            : 'Use the salesperson credentials created for you.'}
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-[var(--text)]">
-              Email or username
-            </label>
-            <input
-              type='text'
-              onChange={handleChange}
-              name='email'
-              value={email}
-              required
-              placeholder='Enter your email or username'
-              className="theme-input mt-1 rounded-lg px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-[var(--text)]">
-              Password
-            </label>
-            <input
-              type='password'
-              minLength={8}
-              name='password'
-              value={password}
-              onChange={handleChange}
-              required
-              placeholder='Enter your password'
-              className="theme-input mt-1 rounded-lg px-4 py-3"
-            />
-          </div>
-
-          <button
-            type='submit'
-            disabled={loading}
-            className="theme-btn-primary mt-2 w-full rounded-lg py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? 'Logging in...' : 'Log In'}
-          </button>
-        </form>
-
-        <p className="mt-5 text-center text-sm text-[var(--muted)]">
-          Don't have an account?{' '}
-          <Link to='/register' className="text-[var(--primary)] font-medium">
-            Sign Up
-          </Link>
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default Login;
+  return <AuthShell title="Welcome back" subtitle="Sign in to pick up where you left off." footer={<>New to Spectra? <Link to="/register" className="ml-1 font-semibold text-[var(--primary)] hover:underline">Create an account</Link></>}>
+    <div className="mb-6 grid grid-cols-2 rounded-xl bg-[var(--surface)] p-1" role="group" aria-label="Account type"><button type="button" onClick={()=>setLoginMode('manager')} aria-pressed={loginMode==='manager'} className={`h-10 rounded-lg text-sm font-semibold transition ${loginMode==='manager'?'bg-[var(--card)] text-[var(--text)] shadow-sm':'text-[var(--muted)]'}`}>Business owner</button><button type="button" onClick={()=>setLoginMode('salesperson')} aria-pressed={loginMode==='salesperson'} className={`h-10 rounded-lg text-sm font-semibold transition ${loginMode==='salesperson'?'bg-[var(--card)] text-[var(--text)] shadow-sm':'text-[var(--muted)]'}`}>Team member</button></div>
+    <p className="-mt-2 mb-5 text-xs text-[var(--muted)]">{loginMode==='manager'?'Use your business account credentials.':'Use the account credentials provided by your manager.'}</p>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div><label htmlFor="login-email" className="text-sm font-semibold">Email or username</label><div className="relative"><Mail size={17} className="absolute left-4 top-[1.35rem] text-[var(--muted)]"/><input id="login-email" autoComplete="username" type="text" name="email" value={email} onChange={(event)=>setEmail(event.target.value)} required placeholder="you@business.com" className={`${fieldClass} pl-11`}/></div></div>
+      <div><div className="flex items-center justify-between"><label htmlFor="login-password" className="text-sm font-semibold">Password</label></div><div className="relative"><LockKeyhole size={17} className="absolute left-4 top-[1.35rem] text-[var(--muted)]"/><input id="login-password" autoComplete="current-password" type={showPassword?'text':'password'} name="password" value={password} onChange={(event)=>setPassword(event.target.value)} required minLength={8} placeholder="Enter your password" className={`${fieldClass} pl-11 pr-12`}/><button type="button" onClick={()=>setShowPassword((value)=>!value)} aria-label={showPassword?'Hide password':'Show password'} className="absolute right-3 top-3 rounded-lg p-1.5 text-[var(--muted)] hover:bg-[var(--surface)]">{showPassword?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></div>
+      <button type="submit" disabled={loading} className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--primary)] px-4 text-sm font-bold text-white shadow-sm transition hover:brightness-105 focus-visible:outline-offset-4 disabled:cursor-not-allowed disabled:opacity-60">{loading?'Signing you in…':'Sign in to your workspace'}</button>
+    </form>
+  </AuthShell>;
+}
