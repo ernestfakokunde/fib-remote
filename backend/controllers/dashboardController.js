@@ -1,6 +1,7 @@
 import Sales from "../models/salesModel.js";
 import Purchase from "../models/purchaseModel.js";
 import Product from "../models/productModel.js";
+import { roundMoney } from "../utils/money.js";
 
 export const getDashboardOverview = async (req, res) => {
   try {
@@ -19,16 +20,16 @@ export const getDashboardOverview = async (req, res) => {
     const [dailySales, todayTotals, yesterdayTotals, inventory, lowStock, topProducts, recentSales] = await Promise.all([
       Sales.aggregate([
         { $match: { createdBy: ownerId, date: { $gte: startDate, $lte: now } } },
-        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }, revenue: { $sum: "$totalRevenue" }, profit: { $sum: "$profit" } } },
+        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }, revenue: { $sum: "$totalRevenue" }, profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } } } },
         { $sort: { _id: 1 } },
       ]),
       Sales.aggregate([
         { $match: { createdBy: ownerId, date: { $gte: today, $lte: now } } },
-        { $group: { _id: null, revenue: { $sum: "$totalRevenue" }, profit: { $sum: "$profit" }, count: { $sum: 1 } } },
+        { $group: { _id: null, revenue: { $sum: "$totalRevenue" }, profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } }, count: { $sum: 1 } } },
       ]),
       Sales.aggregate([
         { $match: { createdBy: ownerId, date: { $gte: yesterday, $lt: today } } },
-        { $group: { _id: null, revenue: { $sum: "$totalRevenue" }, profit: { $sum: "$profit" }, count: { $sum: 1 } } },
+        { $group: { _id: null, revenue: { $sum: "$totalRevenue" }, profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } }, count: { $sum: 1 } } },
       ]),
       Product.aggregate([
         { $match: { createdBy: ownerId } },
@@ -42,7 +43,7 @@ export const getDashboardOverview = async (req, res) => {
         .lean(),
       Sales.aggregate([
         { $match: { createdBy: ownerId, date: { $gte: startDate, $lte: now } } },
-        { $group: { _id: "$product", unitsSold: { $sum: "$quantity" }, revenue: { $sum: "$totalRevenue" }, profit: { $sum: "$profit" } } },
+        { $group: { _id: "$product", unitsSold: { $sum: "$quantity" }, revenue: { $sum: "$totalRevenue" }, profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } } } },
         { $sort: { unitsSold: -1 } }, { $limit: 5 },
         { $lookup: { from: Product.collection.name, localField: "_id", foreignField: "_id", as: "product" } },
         { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
@@ -57,7 +58,7 @@ export const getDashboardOverview = async (req, res) => {
       date.setDate(startDate.getDate() + index);
       const key = date.toISOString().slice(0, 10);
       const entry = dailySales.find((item) => item._id === key);
-      return { date: key, revenue: entry?.revenue || 0, profit: entry?.profit || 0 };
+      return { date: key, revenue: roundMoney(entry?.revenue || 0), profit: roundMoney(entry?.profit || 0) };
     });
     const todayData = todayTotals[0] || { revenue: 0, profit: 0, count: 0 };
     const yesterdayData = yesterdayTotals[0] || { revenue: 0, profit: 0, count: 0 };
@@ -68,17 +69,17 @@ export const getDashboardOverview = async (req, res) => {
       data: {
         rangeDays: days,
         kpis: {
-          revenueToday: todayData.revenue,
-          profitToday: todayData.profit,
-          stockValue: inventory[0]?.value || 0,
+          revenueToday: roundMoney(todayData.revenue),
+          profitToday: roundMoney(todayData.profit),
+          stockValue: roundMoney(inventory[0]?.value || 0),
           productCount: inventory[0]?.count || 0,
           lowStockCount: await Product.countDocuments({ createdBy: ownerId, $expr: { $lte: ["$quantity", "$reOrderLevel"] } }),
-          revenueDelta: delta(todayData.revenue, yesterdayData.revenue),
-          profitDelta: delta(todayData.profit, yesterdayData.profit),
+          revenueDelta: delta(todayData.revenue, yesterdayData.revenue) === null ? null : roundMoney(delta(todayData.revenue, yesterdayData.revenue)),
+          profitDelta: delta(todayData.profit, yesterdayData.profit) === null ? null : roundMoney(delta(todayData.profit, yesterdayData.profit)),
         },
         chart: fillDays,
         lowStock,
-        topProducts,
+          topProducts: topProducts.map((item) => ({ ...item, revenue: roundMoney(item.revenue || 0), profit: roundMoney(item.profit || 0) })),
         recentSales,
       },
     });
@@ -113,7 +114,7 @@ export const getSalesToday = async (req, res) => {
       },
     ]);
 
-    const totalSalesToday = sales[0]?.totalRevenue || 0;
+    const totalSalesToday = roundMoney(sales[0]?.totalRevenue || 0);
     res.json({ totalSalesToday });
   } catch (error) {
     console.error(error);
@@ -141,7 +142,7 @@ export const getPurchasesToday = async (req, res) => {
       },
     ]);
 
-    const totalPurchasesToday = purchases[0]?.totalPurchases || 0;
+    const totalPurchasesToday = roundMoney(purchases[0]?.totalPurchases || 0);
     res.json({ totalPurchasesToday });
   } catch (error) {
     console.error(error);
@@ -172,7 +173,7 @@ export const getTodayProfit = async (req, res) => {
 
     const totalRevenue = profit[0]?.totalRevenue || 0;
     const totalCost = profit[0]?.totalCost || 0;
-    const totalProfitToday = totalRevenue - totalCost;
+    const totalProfitToday = roundMoney(totalRevenue - totalCost);
 
     res.json({ totalProfitToday });
   } catch (error) {
@@ -188,7 +189,7 @@ export const getLowStockCount = async (req, res) => {
 
     const lowStockProducts = await Product.countDocuments({
       createdBy: userId,
-      quantity: { $gt: 0, $lte: 10 },
+      $expr: { $lte: ["$quantity", "$reOrderLevel"] },
     });
 
     res.json({ lowStockCount: lowStockProducts });

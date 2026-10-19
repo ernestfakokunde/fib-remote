@@ -15,7 +15,7 @@ export default function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    try { await Login({ email, password }); }
+    try { await Login({ email, password, accountType: loginMode }); }
     catch { /* The auth context displays the API error. */ }
   };
 

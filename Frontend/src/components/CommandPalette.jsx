@@ -18,7 +18,7 @@ export default function CommandPalette({ isOpen, onClose }) {
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const matches = commands.filter((item)=>`${item.label} ${item.detail}`.toLowerCase().includes(query.toLowerCase()));
-  useEffect(()=>{ if(isOpen){setQuery('');requestAnimationFrame(()=>inputRef.current?.focus());} },[isOpen]);
+  useEffect(()=>{ if(isOpen)requestAnimationFrame(()=>inputRef.current?.focus()); },[isOpen]);
   useEffect(()=>{ if(!isOpen)return undefined;const onKeyDown=(event)=>{if(event.key==='Escape')onClose();};window.addEventListener('keydown',onKeyDown);return()=>window.removeEventListener('keydown',onKeyDown);},[isOpen,onClose]);
   if(!isOpen)return null;
   const go=(path)=>{navigate(path);onClose();};

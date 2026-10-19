@@ -1,4 +1,6 @@
  import Sales from "../models/salesModel.js";
+import { resolveTimeZone } from "../utils/timezone.js";
+import { roundMoney } from "../utils/money.js";
 
 export const getSalesAnalytics = async (req, res) => {
   try {
@@ -24,7 +26,7 @@ export const getSalesAnalytics = async (req, res) => {
             $dateToString: { format: "%Y-%m-%d", date: "$date" }
           },
           revenue: { $sum: "$totalRevenue" },
-          profit: { $sum: "$profit" },
+          profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } },
           salesCount: { $sum: "$quantity" }
         }
       },
@@ -46,7 +48,7 @@ export const getSalesAnalytics = async (req, res) => {
         $group: {
           _id: null,
           revenue: { $sum: "$totalRevenue" },
-          profit: { $sum: "$profit" },
+          profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } },
           salesCount: { $sum: "$quantity" }
         }
       }
@@ -54,8 +56,12 @@ export const getSalesAnalytics = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      dailyChart: last7Days,
-      todayStats: todayStats[0] || {
+      dailyChart: last7Days.map((item) => ({ ...item, revenue: roundMoney(item.revenue || 0), profit: roundMoney(item.profit || 0) })),
+      todayStats: todayStats[0] ? {
+        ...todayStats[0],
+        revenue: roundMoney(todayStats[0].revenue || 0),
+        profit: roundMoney(todayStats[0].profit || 0),
+      } : {
         revenue: 0,
         profit: 0,
         salesCount: 0
@@ -74,7 +80,9 @@ export const getSalesAnalytics = async (req, res) => {
 export const getMonthlyProfit = async (req, res) => {
   try {
     const userId = req.workspaceOwnerId;
-    const months = parseInt(req.query.months, 10) || 6;
+    const timezone = resolveTimeZone(req.query.timeZone);
+    const requestedMonths = parseInt(req.query.months, 10);
+    const months = Number.isFinite(requestedMonths) ? Math.min(24, Math.max(1, requestedMonths)) : 6;
 
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth() - (months - 1), 1);
@@ -89,9 +97,9 @@ export const getMonthlyProfit = async (req, res) => {
       },
       {
         $group: {
-          _id: { year: { $year: "$date" }, month: { $month: "$date" } },
+          _id: { year: { $year: { date: "$date", timezone } }, month: { $month: { date: "$date", timezone } } },
           revenue: { $sum: "$totalRevenue" },
-          profit: { $sum: "$profit" }
+          profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } }
         }
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } }
@@ -103,8 +111,8 @@ export const getMonthlyProfit = async (req, res) => {
       const year = item._id.year;
       const monthIndex = item._id.month - 1; // JS months 0-11
       map.set(`${year}-${monthIndex}`, {
-        revenue: item.revenue || 0,
-        profit: item.profit || 0
+        revenue: roundMoney(item.revenue || 0),
+        profit: roundMoney(item.profit || 0)
       });
     });
 

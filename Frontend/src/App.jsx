@@ -1,27 +1,27 @@
 import React from 'react'
 import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import Register from './pages/Register.jsx'
-import Login from './pages/Login.jsx'
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Layout from './Layout.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import StockIn from './pages/StockIn.jsx';
-import StockOut from './pages/StockOut.jsx';
-import Expenses from './pages/Expenses.jsx';
 import ProtectedRoute from './protectedRoute/protectedRoute.jsx';
-import Products from './pages/Products.jsx';
-import Reports from './pages/Reports.jsx';
-import Settings from './pages/Settings.jsx';
-import Profile from './pages/Profile.jsx';
-import Premium from './pages/Premium.jsx';
-import StaffAccounts from './pages/StaffAccounts.jsx';
 import { lazy, Suspense } from 'react';
 import { LoaderCircle } from 'lucide-react';
 
 const Landing = lazy(() => import('./pages/Landing.jsx'));
 const Sales = lazy(() => import('./pages/Sales.jsx'));
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
+const StockIn = lazy(() => import('./pages/StockIn.jsx'));
+const StockOut = lazy(() => import('./pages/StockOut.jsx'));
+const Expenses = lazy(() => import('./pages/Expenses.jsx'));
+const Products = lazy(() => import('./pages/Products.jsx'));
+const Reports = lazy(() => import('./pages/Reports.jsx'));
+const Settings = lazy(() => import('./pages/Settings.jsx'));
+const Profile = lazy(() => import('./pages/Profile.jsx'));
+const Premium = lazy(() => import('./pages/Premium.jsx'));
+const StaffAccounts = lazy(() => import('./pages/StaffAccounts.jsx'));
+const Register = lazy(() => import('./pages/Register.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
 
 const App = () => {
   return (
@@ -38,7 +38,7 @@ const App = () => {
              <Route path='/products' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Products/></ProtectedRoute>}/>
              <Route path='/reports' element={<ProtectedRoute allowedRoles={['manager']}><Reports/></ProtectedRoute>}/>
              <Route path='/profile' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Profile/></ProtectedRoute>}/>
-             <Route path='/premium' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Premium/></ProtectedRoute>}/>
+             <Route path='/premium' element={<ProtectedRoute allowedRoles={['manager']}><Premium/></ProtectedRoute>}/>
              <Route path='/team' element={<ProtectedRoute allowedRoles={['manager']}><StaffAccounts/></ProtectedRoute>}/>
              <Route path='/settings' element={<ProtectedRoute allowedRoles={['manager']}><Settings/></ProtectedRoute>}/>
           </Route>

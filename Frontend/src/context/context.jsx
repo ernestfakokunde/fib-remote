@@ -1,10 +1,12 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext, useCallback } from "react";
 import API from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const GlobalContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useGlobalContext = () => {
     return useContext(GlobalContext);
 }
@@ -17,7 +19,7 @@ const defaultPermissions = {
   canAccessReports: false,
   canAccessSettings: false,
   canManagePremium: false,
-  canViewPremium: true,
+  canViewPremium: false,
   canRecordSales: true,
   canRecordStockIn: true,
   canViewProducts: true,
@@ -43,7 +45,7 @@ const buildPermissionsFromRole = (role) => {
     canAccessReports: isManager,
     canAccessSettings: isManager,
     canManagePremium: isManager,
-    canViewPremium: true,
+    canViewPremium: isManager,
     canRecordSales: true,
     canRecordStockIn: true,
     canViewProducts: true,
@@ -70,13 +72,20 @@ export const GlobalProvider = ({ children }) => {
 
   const navigate = useNavigate();
 
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    delete API.defaults.headers.common['Authorization'];
+    setUser(null);
+    navigate('/login');
+  }, [navigate]);
+
   //create reusable profile fetch functions
 
-  const fetchUserProfile = async () =>{
+  const fetchUserProfile = useCallback(async () =>{
     const res = await API.get('/users/profile');
     setUser(res.data);
     return res.data;
-  }
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -85,7 +94,7 @@ export const GlobalProvider = ({ children }) => {
         API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         try {
           await fetchUserProfile();
-        } catch (error) {
+        } catch {
           // Invalid token, log them out
           logout();
         }
@@ -94,7 +103,7 @@ export const GlobalProvider = ({ children }) => {
     };
 
     fetchUser();
-  }, []);
+  }, [fetchUserProfile, logout]);
 
   useEffect(() => {
     document.documentElement.classList.remove('theme-white', 'theme-blue', 'theme-blue-black', 'theme-dark');
@@ -137,13 +146,6 @@ export const GlobalProvider = ({ children }) => {
       toast.error(message);
       throw error; // Re-throw to be caught in the component
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    delete API.defaults.headers.common['Authorization'];
-    setUser(null);
-    navigate('/login');
   };
 
   //get user profile and update user state with the latest info from the backend to display in the profile page

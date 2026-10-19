@@ -3,19 +3,14 @@ import { Search, Plus, Loader2, Trash2, Camera } from "lucide-react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "../context/context";
 import Modal from '../components/Modal';
-import SpectraLogo from '../assets/spectra.png';
 import { Input, Skeleton } from '../components/ui';
+import { formatCurrency } from '../utils/format';
+import { downloadCsv } from '../utils/csv';
 
 const PAGE_SIZE = 10;
 
-const formatCurrency = (value) => {
-  const amount = Number(value);
-  if (Number.isNaN(amount)) return "0.00";
-  return amount.toFixed(2);
-};
-
 const deriveStatus = (quantity = 0, reorderLevel = 10) => {
-  if (quantity === 0) return "Out of Stock";
+  if (Number(quantity) === 0) return "Out of Stock";
   if (quantity <= reorderLevel) return "Low Stock";
   return "In Stock";
 };
@@ -23,11 +18,11 @@ const deriveStatus = (quantity = 0, reorderLevel = 10) => {
 const getStatusColor = (status = "") => {
   switch (status.toLowerCase()) {
     case "in stock":
-      return "bg-green-100 text-green-800";
+      return "bg-emerald-500/10 text-[var(--success)]";
     case "low stock":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-amber-500/10 text-[var(--warning)]";
     case "out of stock":
-      return "bg-red-100 text-red-800";
+      return "bg-rose-500/10 text-[var(--danger)]";
     default:
       return "bg-gray-100 text-gray-800";
   }
@@ -180,7 +175,7 @@ export default function Products() {
       toast.success(res.data?.message || "Product added!");
       setShowAddModal(false);
       resetProductForm();
-      await fetchProducts(1, searchTerm);
+      await fetchProducts(1, searchTerm, selectedCategory);
     } catch (error) {
       const msg = error.response?.data?.message || "Failed to create product";
       toast.error(msg);
@@ -192,16 +187,28 @@ export default function Products() {
   const handlePageChange = (direction) => {
     const nextPage = pagination.currentPage + direction;
     if (nextPage < 1 || nextPage > pagination.totalPages) return;
-    fetchProducts(nextPage, searchTerm);
+    fetchProducts(nextPage, searchTerm, selectedCategory);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchProducts(1, searchTerm);
+    fetchProducts(1, searchTerm, selectedCategory);
   };
 
   const disableProductSubmit =
     !permissions.canCreateProduct || !productForm.name.trim() || !productForm.sku.trim() || !productForm.category || isSavingProduct;
+
+  const exportProducts = () => downloadCsv('spectra-products-page.csv',
+    ['Product', 'SKU', 'Category', 'Supplier', 'Cost price (NGN)', 'Selling price (NGN)', 'Quantity', 'Stock value (NGN)', 'Status'],
+    products.map((product) => {
+      const quantity = Number.isFinite(Number(product.quantity)) ? Number(product.quantity) : 0;
+      const costPrice = Number.isFinite(Number(product.costPrice)) ? Number(product.costPrice) : 0;
+      const category = typeof product.category === 'object' ? product.category?.name : product.category;
+      const sellingPrice = Number.isFinite(Number(product.sellingPrice)) ? Number(product.sellingPrice) : 0;
+      const stockValue = costPrice * quantity;
+      return [product.name, product.sku, category || 'Uncategorized', product.supplier || 'Unknown', costPrice, sellingPrice, quantity, Number.isFinite(stockValue) ? stockValue : '', product.stockStatus || deriveStatus(quantity, product.reOrderLevel ?? 10)];
+    })
+  );
 
   const handleOpenAddModal = () => {
     if (!permissions.canCreateProduct) {
@@ -233,22 +240,22 @@ export default function Products() {
   };
 
   return (
-        <div className="page-shell min-h-screen overflow-x-hidden text-[var(--text)]">
+        <main className="w-full overflow-x-hidden py-5 text-[var(--text)] sm:py-7">
       <div>
-        <div className="flex items-start justify-between flex-wrap mb-6">
+        <div className="mb-5 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div className="flex items-center gap-4">
             <div>
-            <p className="text-sm text-[var(--muted)]">Inventory and availability</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text)]">Products</h1>
-            <p className="mt-2 mb-2 text-sm text-[var(--muted)]">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--primary)]">Inventory</p><h1 className="app-page-title text-[var(--text)]">Products</h1>
+            <p className="app-page-copy mt-2">
               {isSalesperson ? "Browse product stock and pricing in view-only mode" : "Manage your inventory products"}
             </p>
             </div>
           </div>
-          <div className="flex items-center mt-2 gap-3">
-              <button className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">Export</button>
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+              <button onClick={exportProducts} disabled={!products.length} className="app-control flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium disabled:opacity-50 sm:flex-none">Export page</button>
             <button
               onClick={handleOpenAddModal}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm ${
+              className={`app-control flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm sm:flex-none ${
                 permissions.canCreateProduct
                   ? "bg-[var(--primary)] text-white"
                   : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]"
@@ -260,7 +267,7 @@ export default function Products() {
         </div>
 
         <div className="mb-4">
-          <form onSubmit={handleSearchSubmit} className="flex gap-3 items-center">
+          <form onSubmit={handleSearchSubmit} className="app-card flex flex-col gap-2 p-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] h-5 w-5" />
               <Input
@@ -272,7 +279,8 @@ export default function Products() {
               />
             </div>
             <select
-              className="px-3 py-2 border border-[var(--border)] rounded-lg text-sm bg-[var(--surface)] text-[var(--text)]"
+              aria-label="Filter products by category"
+              className="theme-input app-control px-3 text-sm sm:w-56"
               value={selectedCategory}
               onChange={(e) => {
                 const v = e.target.value;
@@ -291,7 +299,7 @@ export default function Products() {
         </div>
 
         {/* Table for md and larger screens */}
-        <div className="hidden overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow)] lg:block">
+        <div className="app-card hidden overflow-hidden lg:block">
           <div className="overflow-x-auto w-full">
             <table className="w-full table-auto min-w-full">
                   <thead className="bg-[var(--surface)]">
@@ -329,7 +337,7 @@ export default function Products() {
                 {!isLoading &&
                   products.map((product) => {
                     const quantity = Number(product.quantity) || 0;
-                    const reOrderLevel = Number(product.reOrderLevel) || 10;
+              const reOrderLevel = Number.isFinite(Number(product.reOrderLevel)) ? Number(product.reOrderLevel) : 10;
                     const stockValue = (Number(product.costPrice) || 0) * quantity;
                     const derivedStatus = product.stockStatus || deriveStatus(quantity, reOrderLevel);
                     const statusColor = getStatusColor(derivedStatus);
@@ -345,10 +353,10 @@ export default function Products() {
                         <td className="py-4 px-4 text-sm text-[var(--muted)]">{product.sku}</td>
                         <td className="py-4 px-4 text-sm text-[var(--muted)]">{categoryLabel}</td>
                         <td className="py-4 px-4 text-sm text-[var(--muted)]">{product.supplier || "Unknown"}</td>
-                        <td className="py-4 px-4 text-sm text-[var(--muted)]">NGN {formatCurrency(product.costPrice)}</td>
-                        <td className="py-4 px-4 text-sm text-[var(--muted)]">NGN {formatCurrency(product.sellingPrice)}</td>
+                        <td className="py-4 px-4 text-sm tabular-nums text-[var(--muted)]">{formatCurrency(product.costPrice)}</td>
+                        <td className="py-4 px-4 text-sm tabular-nums text-[var(--muted)]">{formatCurrency(product.sellingPrice)}</td>
                         <td className="py-4 px-4 text-sm text-[var(--muted)]">{quantity}</td>
-                        <td className="py-4 px-4 text-sm font-medium text-[var(--text)]">NGN {formatCurrency(stockValue)}</td>
+                        <td className="py-4 px-4 text-sm font-medium tabular-nums text-[var(--text)]">{formatCurrency(stockValue)}</td>
                         <td className="py-4 px-4">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
                             {derivedStatus}
@@ -413,7 +421,7 @@ export default function Products() {
 
           {!isLoading && products.map((product) => {
             const quantity = Number(product.quantity) || 0;
-            const reOrderLevel = Number(product.reOrderLevel) || 10;
+            const reOrderLevel = Number.isFinite(Number(product.reOrderLevel)) ? Number(product.reOrderLevel) : 10;
             const stockValue = (Number(product.costPrice) || 0) * quantity;
             const derivedStatus = product.stockStatus || deriveStatus(quantity, reOrderLevel);
             const statusColor = getStatusColor(derivedStatus);
@@ -424,7 +432,7 @@ export default function Products() {
                 : product.category || "Uncategorized";
 
             return (
-              <div key={product._id || product.sku || product.name} className="bg-[var(--card)] rounded-lg shadow-sm border border-[var(--border)] p-4">
+              <div key={product._id || product.sku || product.name} className="app-card p-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-[var(--text)]">{product.name}</h3>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>{derivedStatus}</span>
@@ -434,8 +442,8 @@ export default function Products() {
                   <div><span className="text-[var(--muted)]">Category</span><div className="text-[var(--text)]">{categoryLabel}</div></div>
                   <div><span className="text-[var(--muted)]">Supplier</span><div className="text-[var(--text)]">{product.supplier || 'Unknown'}</div></div>
                   <div><span className="text-[var(--muted)]">Quantity</span><div className="text-[var(--text)]">{quantity}</div></div>
-                  <div><span className="text-[var(--muted)]">Cost</span><div className="text-[var(--text)]">NGN {formatCurrency(product.costPrice)}</div></div>
-                  <div><span className="text-[var(--muted)]">Stock Value</span><div className="text-[var(--text)]">NGN {formatCurrency(stockValue)}</div></div>
+                  <div><span className="text-[var(--muted)]">Cost</span><div className="tabular-nums text-[var(--text)]">{formatCurrency(product.costPrice)}</div></div>
+                  <div><span className="text-[var(--muted)]">Stock Value</span><div className="tabular-nums text-[var(--text)]">{formatCurrency(stockValue)}</div></div>
                 </div>
                 {permissions.canManageProducts ? (
                   <div className="mt-4 flex justify-end">
@@ -607,9 +615,6 @@ export default function Products() {
           </div>
         </Modal>
       )}
-    </div>
+    </main>
   );
 }
-
-
-

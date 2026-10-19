@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Products from '../models/productModel.js';
 import { buildPermissions, getProductLimit, getWorkspaceOwnerId } from '../utils/accessScope.js';
+import { randomBytes } from 'node:crypto';
 
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -10,8 +11,7 @@ const generateToken = (id) =>
   });
 
 const generateSalespersonPassword = () => {
-  const seed = Math.random().toString(36).slice(-6);
-  return `sales-${seed}${Date.now().toString().slice(-2)}`;
+  return `Spx-${randomBytes(12).toString('base64url')}!`;
 };
 
 const getEffectiveRole = (user) => {
@@ -64,8 +64,11 @@ export const Register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    if (!username || !email || !password) {
+    if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string' || !username.trim() || !email.trim() || !password) {
       return res.status(400).json({ message: 'All fields are required' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
     }
 
     const existingUser = await User.findOne({
@@ -100,7 +103,11 @@ export const Register = async (req, res) => {
 
 export const Login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, accountType } = req.body;
+
+    if (accountType && !['manager', 'salesperson'].includes(accountType)) {
+      return res.status(400).json({ message: 'Account type is invalid' });
+    }
 
     const identifier = email?.trim();
     const user = await User.findOne({
@@ -118,6 +125,15 @@ export const Login = async (req, res) => {
 
     if (!ismatch) {
       return res.status(400).json({ message: 'Password is invalid' });
+    }
+
+    const role = getEffectiveRole(user);
+    if (accountType && accountType !== role) {
+      return res.status(403).json({
+        message: role === 'manager'
+          ? 'This is a business owner account. Choose Business owner to sign in.'
+          : 'This is a team member account. Choose Team member to sign in.',
+      });
     }
 
     const token = generateToken(user._id);
@@ -140,12 +156,18 @@ export const createSalesperson = async (req, res) => {
     }
 
     const { username, email } = req.body;
-    if (!username || !email) {
+    if (typeof username !== 'string' || typeof email !== 'string' || !username.trim() || !email.trim()) {
       return res.status(400).json({ message: 'Username and email are required' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedUsername = username.trim();
+    if (normalizedUsername.length < 2 || normalizedUsername.length > 40) {
+      return res.status(400).json({ message: 'Username must be between 2 and 40 characters' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return res.status(400).json({ message: 'Enter a valid email address' });
+    }
 
     const existingUser = await User.findOne({
       $or: [{ email: normalizedEmail }, { username: normalizedUsername }],
@@ -174,12 +196,15 @@ export const createSalesperson = async (req, res) => {
         id: salesperson._id,
         username: salesperson.username,
         email: salesperson.email,
-      role: getEffectiveRole(salesperson),
+        role: getEffectiveRole(salesperson),
         ownerAdmin: salesperson.ownerAdmin,
       },
       generatedPassword,
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'A user with that email or username already exists' });
+    }
     console.error('Create salesperson error:', error);
     res.status(500).json({ message: 'Server Error creating salesperson' });
   }

@@ -1,5 +1,7 @@
 import Sales from "../models/salesModel.js";
 import Products from "../models/productModel.js";
+import { roundMoney } from "../utils/money.js";
+import { parseDateBoundary } from "../utils/dateRange.js";
 
 export const generateSalesReport = async (req, res) => {
   try {
@@ -7,12 +9,11 @@ export const generateSalesReport = async (req, res) => {
     if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
     const { start, end } = req.query;
-    const endDate = end ? new Date(end) : new Date();
-    const startDate = start ? new Date(start) : new Date(endDate.getTime() - 1000 * 60 * 60 * 24 * 6); // default to last 7 days
-
-    // normalize to full days
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const endDate = end ? parseDateBoundary(end, true) : now;
+    const startDate = start ? parseDateBoundary(start) : endDate && new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate() - 6));
+    if (!startDate || !endDate) return res.status(400).json({ success: false, message: 'Report date range is invalid' });
+    if (startDate > endDate) return res.status(400).json({ success: false, message: 'Start date must be on or before end date' });
 
     // totals (revenue & cost)
     const totalsAgg = await Sales.aggregate([
@@ -20,10 +21,10 @@ export const generateSalesReport = async (req, res) => {
       { $group: { _id: null, totalRevenue: { $sum: "$totalRevenue" }, totalCost: { $sum: "$totalCost" } } }
     ]);
     const totals = totalsAgg[0] || { totalRevenue: 0, totalCost: 0 };
-    const totalRevenue = totals.totalRevenue || 0;
-    const totalCost = totals.totalCost || 0;
-    const grossProfit = totalRevenue - totalCost;
-    const profitMargin = totalRevenue ? (grossProfit / totalRevenue) * 100 : 0;
+    const totalRevenue = roundMoney(totals.totalRevenue || 0);
+    const totalCost = roundMoney(totals.totalCost || 0);
+    const grossProfit = roundMoney(totalRevenue - totalCost);
+    const profitMargin = totalRevenue ? roundMoney((grossProfit / totalRevenue) * 100) : 0;
 
     // revenue & profit trend (grouped by day)
     const trend = await Sales.aggregate([
@@ -32,7 +33,7 @@ export const generateSalesReport = async (req, res) => {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
           revenue: { $sum: "$totalRevenue" },
-          profit: { $sum: "$profit" }
+          profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } }
         }
       },
       { $sort: { _id: 1 } }
@@ -72,7 +73,7 @@ export const generateSalesReport = async (req, res) => {
         }
       },
       { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
-      { $project: { productId: "$_id", name: "$product.name", sku: "$product.sku", quantitySold: 1 } }
+      { $project: { productId: "$_id", name: "$product.name", sku: "$product.sku", product: { quantity: "$product.quantity" }, quantitySold: 1 } }
     ]);
 
     return res.json({
@@ -81,8 +82,8 @@ export const generateSalesReport = async (req, res) => {
       totalCost,
       grossProfit,
       profitMargin,
-      trend,
-      bestSellingProducts,
+      trend: trend.map((item) => ({ ...item, revenue: roundMoney(item.revenue || 0), profit: roundMoney(item.profit || 0) })),
+      bestSellingProducts: bestSellingProducts.map((item) => ({ ...item, revenue: roundMoney(item.revenue || 0) })),
       slowSellingProducts
     });
   } catch (error) {

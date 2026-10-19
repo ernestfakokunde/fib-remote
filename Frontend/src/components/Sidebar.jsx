@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Package, ArrowDownToLine, ArrowUpFromLine, CircleDollarSign, ChartNoAxesCombined, ReceiptText, UserRound, Users, Settings, Zap } from 'lucide-react';
 import { useGlobalContext } from '../context/context';
-import SpectraLogo from '../assets/spectra.png';
+import BrandLogo from './BrandLogo';
 
 const Sidebar = () => {
   const { sidebarOpen, toggleSidebar, permissions, user } = useGlobalContext();
@@ -30,7 +30,7 @@ const Sidebar = () => {
   return <>
     {sidebarOpen && <button aria-label="Close navigation" className="fixed inset-0 z-40 bg-slate-950/30 lg:hidden" onClick={toggleSidebar} />}
     <aside className={`fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col border-r border-[var(--border)] bg-[var(--sidebar)] px-3.5 py-4 transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-      <a href="/" className="mb-7 flex items-center gap-2.5 px-2.5"><img src={SpectraLogo} alt="" className="h-8 w-8 object-contain"/><span className="text-sm font-bold tracking-tight">Spectra Inventory</span></a>
+      <a href="/" aria-label="Spectra Inventory home" className="mb-7 px-2.5 text-[var(--text)]"><BrandLogo markClassName="h-8 w-8" wordmarkClassName="text-xs" /></a>
       <nav className="flex-1 space-y-6 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{groups.map((group)=><section key={group.title}><h2 className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.13em] text-[var(--muted)]">{group.title}</h2><div className="space-y-0.5">{group.links.map(renderLink)}</div></section>)}</nav>
       <div className="border-t border-[var(--border)] pt-3"><div className="space-y-0.5">{permissions.canAccessSettings && renderLink({ to: '/settings', label: 'Settings', Icon: Settings })}</div><div className="mt-3 flex items-center gap-2.5 rounded-lg bg-[var(--surface)] px-2.5 py-2"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--primary-soft)] text-xs font-bold text-[var(--primary)]">{(user?.username || user?.email || 'U').slice(0,1).toUpperCase()}</span><span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold">{user?.username || user?.name || 'Your account'}</span><span className="block truncate text-[10px] text-[var(--muted)]">{user?.email || 'Spectra workspace'}</span></span></div></div>
     </aside>

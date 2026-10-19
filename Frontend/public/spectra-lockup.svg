@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 128" fill="none">
+  <path d="M62 9 111 37.5 62 66 13 37.5 62 9Z" fill="#818CF8"/>
+  <path d="M13 37.5 62 66v49L13 86.5v-49Z" fill="#4F46E5"/>
+  <path d="M111 37.5 62 66v49l49-28.5v-49Z" fill="#6366F1"/>
+  <path d="m62 27 27 15.7L62 58.3 35 42.7 62 27Z" fill="#C7D2FE"/>
+  <path d="m13 65 49 28.5v9L13 74v-9Z" fill="#818CF8"/>
+  <path d="m111 65-49 28.5v9L111 74v-9Z" fill="#22D3EE"/>
+  <text x="145" y="66" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="51" font-weight="600" letter-spacing="-2.5">Spectra</text>
+  <text x="149" y="96" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Inventory</text>
+</svg>

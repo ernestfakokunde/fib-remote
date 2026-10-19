@@ -25,7 +25,7 @@ export const buildPermissions = (role) => {
     canAccessReports: isManager,
     canAccessSettings: isManager,
     canManagePremium: isManager,
-    canViewPremium: true,
+    canViewPremium: isManager,
     canRecordSales: true,
     canRecordStockIn: true,
     canViewProducts: true,

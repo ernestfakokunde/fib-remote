@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" rx="32" fill="#F7F8FA"/>
+  <g transform="translate(340 251) scale(1.55)">
+    <path d="M32 3 59 18.5 32 34 5 18.5 32 3Z" fill="#818CF8"/>
+    <path d="M5 18.5 32 34v27L5 45.5v-27Z" fill="#4F46E5"/>
+    <path d="M59 18.5 32 34v27l27-15.5v-27Z" fill="#6366F1"/>
+    <path d="m32 13 15 8.7L32 30.3l-15-8.6L32 13Z" fill="#C7D2FE"/>
+    <path d="m5 34 27 15.6v5.2L5 39.2V34Z" fill="#818CF8"/>
+    <path d="m59 34-27 15.6v5.2l27-15.6V34Z" fill="#22D3EE"/>
+  </g>
+  <text x="470" y="337" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="84" font-weight="600" letter-spacing="-4">Spectra</text>
+  <text x="477" y="389" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="500" letter-spacing=".5">Inventory</text>
+</svg>

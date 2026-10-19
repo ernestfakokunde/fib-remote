@@ -15,8 +15,8 @@ const router = express.Router();
 router.post("/register", Register);
 router.post("/login", Login);
 router.get("/profile", Protect, getProfile);
-router.put("/profile", Protect, updateProfile);
-router.put("/change-password", Protect, changePassword);
+router.put("/profile", Protect, requireRoles("manager"), updateProfile);
+router.put("/change-password", Protect, requireRoles("manager"), changePassword);
 router.post("/salespeople", Protect, requireRoles("manager"), createSalesperson);
 router.get("/salespeople", Protect, requireRoles("manager"), getSalespeople);
 

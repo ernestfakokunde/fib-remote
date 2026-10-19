@@ -1,7 +1,10 @@
 import Purchase from "../models/purchaseModel.js";
 import Products from "../models/productModel.js";
 import User from "../models/userModel.js";
+import mongoose from "mongoose";
 import { notifyStockIn, notifyLowStock, notifyOutOfStock } from "../services/notificationService.js";
+import { isPositiveWholeQuantity, isValidMoney, roundMoney } from "../utils/money.js";
+import { buildDateRange } from "../utils/dateRange.js";
 
 export const createPurchase = async (req, res) => {
   try {
@@ -11,56 +14,81 @@ export const createPurchase = async (req, res) => {
     if (!productId || quantity === undefined || costPrice === undefined) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    if (!mongoose.isValidObjectId(productId)) {
+      return res.status(400).json({ message: "Product ID is invalid" });
+    }
 
     const parsedQuantity = Number(quantity);
     const parsedCostPrice = Number(costPrice);
 
-    if (Number.isNaN(parsedQuantity) || parsedQuantity <= 0) {
-      return res.status(400).json({ message: "Quantity must be greater than 0" });
+    if (!isPositiveWholeQuantity(parsedQuantity)) {
+      return res.status(400).json({ message: "Quantity must be a positive whole number" });
     }
 
-    if (Number.isNaN(parsedCostPrice) || parsedCostPrice <= 0) {
-      return res.status(400).json({ message: "Cost price must be greater than 0" });
+    if (!isValidMoney(parsedCostPrice) || parsedCostPrice <= 0) {
+      return res.status(400).json({ message: "Cost price must be a finite amount greater than 0" });
     }
+
+    const normalizedCostPrice = roundMoney(parsedCostPrice);
+    if (normalizedCostPrice <= 0) return res.status(400).json({ message: "Cost price must be at least 0.01" });
+    const totalCost = roundMoney(parsedQuantity * normalizedCostPrice);
+    if (!isValidMoney(totalCost) || totalCost <= 0) return res.status(400).json({ message: "Purchase total must be at least 0.01 and within the supported amount" });
 
     const productExists = await Products.findOne({ _id: productId, createdBy: workspaceOwnerId });
     if (!productExists) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    productExists.quantity += parsedQuantity;
-    await productExists.save();
-
-    const totalCost = parsedQuantity * parsedCostPrice;
+    const purchaseDate = date ? new Date(date) : new Date();
+    if (!Number.isFinite(purchaseDate.getTime())) {
+      return res.status(400).json({ message: "Purchase date is invalid" });
+    }
 
     const newPurchase = new Purchase({
       product: productId,
       quantity: parsedQuantity,
       totalCost,
-      date: date ? new Date(date) : new Date(),
-      costPrice: parsedCostPrice,
+      date: purchaseDate,
+      costPrice: normalizedCostPrice,
       supplier: supplier?.trim() || "Unknown",
       createdBy: workspaceOwnerId,
       recordedBy: req.user._id,
     });
 
-    const savedPurchase = await newPurchase.save();
+    const updatedProduct = await Products.findOneAndUpdate(
+      { _id: productId, createdBy: workspaceOwnerId, quantity: { $lte: Number.MAX_SAFE_INTEGER - parsedQuantity } },
+      { $inc: { quantity: parsedQuantity } },
+      { new: true }
+    );
+    if (!updatedProduct) {
+      const exists = await Products.exists({ _id: productId, createdBy: workspaceOwnerId });
+      return exists
+        ? res.status(400).json({ message: "Purchase would exceed the supported stock quantity" })
+        : res.status(404).json({ message: "Product not found" });
+    }
+
+    let savedPurchase;
+    try {
+      savedPurchase = await newPurchase.save();
+    } catch (error) {
+      await Products.updateOne({ _id: productId, createdBy: workspaceOwnerId }, { $inc: { quantity: -parsedQuantity } });
+      throw error;
+    }
     res.status(201).json({
       message: "Purchase added successfully",
       purchase: savedPurchase,
-      product: productExists,
+      product: updatedProduct,
       success: true,
     });
 
-    const workspaceUser = await User.findById(workspaceOwnerId);
-    if (workspaceUser) {
-      if (productExists.quantity === 0) {
-        await notifyOutOfStock(workspaceUser, productExists);
-      } else if (productExists.quantity <= productExists.reOrderLevel) {
-        await notifyLowStock(workspaceUser, productExists);
-      }
-      await notifyStockIn(workspaceUser, productExists, parsedQuantity);
-    }
+    void User.findById(workspaceOwnerId)
+      .then(async (workspaceUser) => {
+        if (!workspaceUser || !updatedProduct) return;
+        if (updatedProduct.quantity === 0) await notifyOutOfStock(workspaceUser, updatedProduct);
+        else if (updatedProduct.quantity <= updatedProduct.reOrderLevel) await notifyLowStock(workspaceUser, updatedProduct);
+        await notifyStockIn(workspaceUser, updatedProduct, parsedQuantity);
+      })
+      .catch((error) => console.error("Stock-in notification failed:", error.message));
   } catch (error) {
     console.error("Error adding purchase:", error);
     res.status(500).json({ message: "Server Error" });
@@ -96,11 +124,10 @@ export const getAllPurchases = async (req, res) => {
       last7days.setDate(now.getDate() - 7);
       dateQuery = { $gte: last7days };
     }
-    if (start && end) {
-      dateQuery = {
-        $gte: new Date(start),
-        $lte: new Date(end),
-      };
+    if (start || end) {
+      const { range, error } = buildDateRange(start, end);
+      if (error) return res.status(400).json({ success: false, message: error });
+      dateQuery = range;
     }
 
     const query = {
@@ -134,7 +161,7 @@ export const getAllPurchases = async (req, res) => {
       totalPages: Math.ceil(total / limit),
       totalPurchases: total,
       purchases,
-      totalValue: totalsRow.totalCost || 0,
+      totalValue: roundMoney(totalsRow.totalCost || 0),
     });
   } catch (error) {
     console.error("Error fetching purchases:", error);

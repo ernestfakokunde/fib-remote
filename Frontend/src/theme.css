@@ -10,6 +10,7 @@
   --muted: #64748B;
   --primary: #4F46E5;
   --primary-soft: #EEF2FF;
+  --chart-secondary: #0f766e;
   --button: #172033;
   --success: #168a62;
   --warning: #b7791f;
@@ -33,6 +34,7 @@
   --muted: #8B93A7;
   --primary: #6366F1;
   --primary-soft: rgba(99, 102, 241, 0.14);
+  --chart-secondary: #34d399;
   --button: #E6E8EF;
   --success: #43c997;
   --warning: #f0b64d;
@@ -43,7 +45,7 @@
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Manrope, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -88,7 +90,7 @@ body {
   box-shadow: 0 24px 60px -28px rgba(2, 6, 23, 0.65);
 }
 
-html { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+html { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; }
 .theme-dark .shadow-xl, .theme-dark .shadow-2xl, .theme-dark .shadow-lg, .theme-blue .shadow-xl, .theme-blue .shadow-2xl, .theme-blue .shadow-lg, .theme-blue-black .shadow-xl, .theme-blue-black .shadow-2xl, .theme-blue-black .shadow-lg { box-shadow: none !important; }
 .theme-dark [class~="border-white/10"], .theme-blue [class~="border-white/10"], .theme-blue-black [class~="border-white/10"] { border-color: var(--border) !important; }
 .theme-dark [class~="bg-white/5"], .theme-dark [class~="bg-white/10"], .theme-dark [class~="bg-white/15"], .theme-blue [class~="bg-white/5"], .theme-blue [class~="bg-white/10"], .theme-blue [class~="bg-white/15"], .theme-blue-black [class~="bg-white/5"], .theme-blue-black [class~="bg-white/10"], .theme-blue-black [class~="bg-white/15"] { background-color: color-mix(in srgb, var(--surface) 86%, transparent) !important; }
@@ -201,11 +203,22 @@ html:not(.theme-dark) .text-sky-100, html:not(.theme-dark) .text-cyan-100, html:
 
 .gradient-1,.gradient-2,.gradient-3,.gradient-4 { background-image: none; background-color: var(--primary); }
 
+.app-page-title { font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.15; letter-spacing: -0.045em; font-weight: 700; }
+.app-page-copy { max-width: 44rem; color: var(--muted); font-size: .925rem; line-height: 1.6; }
+.app-card { border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+.app-control { min-height: 42px; border-radius: 10px; }
+.money-value { font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.025em; }
+
 :focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 55%, transparent); outline-offset: 2px; }
 
 @media (max-width: 1023px) {
   .page-shell { padding-inline: 1rem; }
   body { padding-bottom: 4.5rem; }
+}
+
+@media (max-width: 639px) {
+  .page-shell { padding-inline: .875rem; }
+  .mobile-action { width: 100%; min-height: 44px; }
 }
 
 

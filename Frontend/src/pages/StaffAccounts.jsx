@@ -68,7 +68,7 @@ const StaffAccounts = () => {
     try {
       await navigator.clipboard.writeText(generatedCredentials.password);
       toast.success('Generated password copied');
-    } catch (error) {
+    } catch {
       toast.error('Could not copy password');
     }
   };

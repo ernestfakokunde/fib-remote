@@ -3,15 +3,15 @@ import { formatCurrency } from '../utils/format';
 
 const PurchaseSummary = ({ totalValue = 0, transactions = 0 }) => {
   return (
-    <div className="glass-panel mb-6 rounded-[1.75rem] border border-white/10 p-6 shadow-xl">
-      <div className="flex items-center justify-between gap-4">
+    <div className="app-card p-4 sm:p-5">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <div className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Total Purchase Value</div>
-          <div className="mt-2 text-2xl font-semibold tabular-nums text-[var(--text)]">{formatCurrency(totalValue)}</div>
+          <div className="text-xs font-medium text-[var(--muted)]">Purchase value</div>
+          <div className="money-value mt-2 text-xl font-semibold text-[var(--text)] sm:text-2xl">{formatCurrency(totalValue)}</div>
         </div>
         <div className="text-right">
-          <div className="text-xs uppercase tracking-[0.28em] text-[var(--muted)]">Total Transactions</div>
-          <div className="mt-2 text-xl font-medium text-[var(--text)]">{transactions}</div>
+          <div className="text-xs font-medium text-[var(--muted)]">Transactions</div>
+          <div className="mt-2 text-xl font-semibold tabular-nums text-[var(--text)]">{transactions}</div>
         </div>
       </div>
     </div>

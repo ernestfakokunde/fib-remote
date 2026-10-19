@@ -48,13 +48,13 @@ const Profile = () => {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link
+            {permissions.canViewPremium ? <Link
               to="/premium"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-medium text-white shadow-lg shadow-sky-500/20 transition hover:opacity-90"
             >
               <Sparkles size={16} />
               {permissions.canManagePremium ? 'Upgrade Plan' : 'View Plans'}
-            </Link>
+            </Link> : null}
             {permissions.canAccessSettings ? (
               <Link
                 to="/settings"
@@ -152,13 +152,13 @@ const Profile = () => {
               <span>Manage products</span>
               <Package size={16} />
             </Link>
-            <Link
+            {permissions.canViewPremium ? <Link
               to="/premium"
               className="flex items-center justify-between rounded-2xl border border-sky-300/20 bg-sky-300/10 px-4 py-4 text-sm text-sky-50 transition hover:bg-sky-300/15"
             >
               <span>See premium options</span>
               <Sparkles size={16} />
-            </Link>
+            </Link> : null}
             {permissions.canAccessSettings ? (
               <Link
                 to="/settings"

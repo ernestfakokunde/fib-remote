@@ -1,5 +1,7 @@
 // src/components/TopBarNav.jsx
+import { createElement } from 'react';
 import { NavLink } from "react-router-dom";
+import { useGlobalContext } from "../context/context";
 import {
   LayoutDashboard,
   Package,
@@ -45,10 +47,11 @@ const NavItem = ({ to, label, Icon }) => (
       }`
     }
   >
-    <Icon size={18} />
+    {createElement(Icon, { size: 18 })}
     {label}
   </NavLink>
 );
 
 export default TopBarNav;
-import { useGlobalContext } from "../context/context";
+
+

@@ -1,7 +1,19 @@
 import Products from "../models/productModel.js";
 import Sales from "../models/salesModel.js";
 import User from "../models/userModel.js";
+import mongoose from "mongoose";
 import { notifySaleMade } from "../services/notificationService.js";
+import { isPositiveWholeQuantity, isValidMoney, roundMoney } from "../utils/money.js";
+import { buildDateRange } from "../utils/dateRange.js";
+import { resolveTimeZone } from "../utils/timezone.js";
+
+const setDateRange = (filter, startDate, endDate) => {
+  if (!startDate && !endDate) return null;
+  const { range, error } = buildDateRange(startDate, endDate);
+  if (error) return error;
+  filter.date = range;
+  return null;
+};
 
 export const createSale = async (req, res) => {
   try {
@@ -11,62 +23,84 @@ export const createSale = async (req, res) => {
     if (!productId || quantity === undefined || sellingPrice === undefined) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    if (!mongoose.isValidObjectId(productId)) {
+      return res.status(400).json({ message: "Product ID is invalid" });
+    }
 
     const parsedQuantity = Number(quantity);
     const parsedSellingPrice = Number(sellingPrice);
 
-    if (Number.isNaN(parsedQuantity) || parsedQuantity <= 0) {
-      return res.status(400).json({ message: "Quantity must be greater than 0" });
+    if (!isPositiveWholeQuantity(parsedQuantity)) {
+      return res.status(400).json({ message: "Quantity must be a positive whole number" });
     }
 
-    if (Number.isNaN(parsedSellingPrice) || parsedSellingPrice <= 0) {
-      return res.status(400).json({ message: "Selling price must be greater than 0" });
+    if (!isValidMoney(parsedSellingPrice) || parsedSellingPrice <= 0) {
+      return res.status(400).json({ message: "Selling price must be a finite amount greater than 0" });
     }
+    const normalizedSellingPrice = roundMoney(parsedSellingPrice);
+    if (normalizedSellingPrice <= 0) return res.status(400).json({ message: "Selling price must be at least 0.01" });
 
     const productExists = await Products.findOne({ _id: productId, createdBy: workspaceOwnerId });
     if (!productExists) {
       return res.status(404).json({ message: "Product does not exist" });
     }
 
-    if (parsedQuantity > productExists.quantity) {
-      return res.status(400).json({
-        message: `Only ${productExists.quantity} items left in stock`,
-      });
+    const costPrice = roundMoney(productExists.costPrice);
+    if (!isValidMoney(costPrice)) return res.status(400).json({ message: "Product cost price is invalid" });
+    const totalRevenue = roundMoney(normalizedSellingPrice * parsedQuantity);
+    const totalCost = roundMoney(costPrice * parsedQuantity);
+    const profit = roundMoney(totalRevenue - totalCost);
+    if (![totalRevenue, totalCost, profit].every(isValidMoney) || totalRevenue <= 0) {
+      return res.status(400).json({ message: "Sale totals exceed the supported amount" });
     }
 
-    const costPrice = productExists.costPrice;
-    const totalRevenue = parsedSellingPrice * parsedQuantity;
-    const totalCost = costPrice * parsedQuantity;
-    const profit = totalRevenue - totalCost;
+    const saleDate = date ? new Date(date) : new Date();
+    if (!Number.isFinite(saleDate.getTime())) {
+      return res.status(400).json({ message: "Sale date is invalid" });
+    }
 
-    const newSale = await Sales.create({
-      product: productId,
-      quantity: parsedQuantity,
-      sellingPrice: parsedSellingPrice,
-      totalRevenue,
-      totalCost,
-      costPrice,
-      profit,
-      date: date ? new Date(date) : Date.now(),
-      customer: customer?.trim() || "Walk-in Customer",
-      createdBy: workspaceOwnerId,
-      recordedBy: req.user._id,
-    });
+    // Reserve stock atomically so two simultaneous sales cannot sell the same units.
+    const updatedProduct = await Products.findOneAndUpdate(
+      { _id: productId, createdBy: workspaceOwnerId, quantity: { $gte: parsedQuantity } },
+      { $inc: { quantity: -parsedQuantity } },
+      { new: true }
+    );
+    if (!updatedProduct) {
+      const latestProduct = await Products.findOne({ _id: productId, createdBy: workspaceOwnerId }).select("quantity").lean();
+      if (!latestProduct) return res.status(404).json({ message: "Product does not exist" });
+      return res.status(400).json({ message: `Only ${latestProduct.quantity} items left in stock` });
+    }
 
-    productExists.quantity -= parsedQuantity;
-    await productExists.save();
+    let newSale;
+    try {
+      newSale = await Sales.create({
+        product: productId,
+        quantity: parsedQuantity,
+        sellingPrice: normalizedSellingPrice,
+        totalRevenue,
+        totalCost,
+        costPrice,
+        profit,
+        date: saleDate,
+        customer: customer?.trim() || "Walk-in Customer",
+        createdBy: workspaceOwnerId,
+        recordedBy: req.user._id,
+      });
+    } catch (error) {
+      await Products.updateOne({ _id: productId, createdBy: workspaceOwnerId }, { $inc: { quantity: parsedQuantity } });
+      throw error;
+    }
 
     res.status(201).json({
       message: "Sale added successfully",
       sale: newSale,
-      product: productExists,
+      product: updatedProduct,
       success: true,
     });
 
-    const workspaceUser = await User.findById(workspaceOwnerId);
-    if (workspaceUser) {
-      await notifySaleMade(workspaceUser, newSale, productExists);
-    }
+    void User.findById(workspaceOwnerId)
+      .then((workspaceUser) => workspaceUser && notifySaleMade(workspaceUser, newSale, updatedProduct))
+      .catch((error) => console.error("Sale notification failed:", error.message));
   } catch (error) {
     console.error("Error adding sale:", error);
     res.status(500).json({ message: "Server Error" });
@@ -81,11 +115,8 @@ export const getAllSales = async (req, res) => {
     const limitNumber = Math.max(1, Math.min(1000, parseInt(limit, 10) || 100));
     const filter = { createdBy: userId };
 
-    if (startDate || endDate) {
-      filter.date = {};
-      if (startDate) filter.date.$gte = new Date(startDate + 'T00:00:00.000Z');
-      if (endDate) filter.date.$lte = new Date(endDate + 'T23:59:59.999Z');
-    }
+    const rangeError = setDateRange(filter, startDate, endDate);
+    if (rangeError) return res.status(400).json({ success: false, message: rangeError });
 
     const skip = (pageNumber - 1) * limitNumber;
 
@@ -103,7 +134,7 @@ export const getAllSales = async (req, res) => {
           $group: {
             _id: null,
             totalRevenue: { $sum: '$totalRevenue' },
-            totalProfit: { $sum: '$profit' },
+            totalProfit: { $sum: { $subtract: ['$totalRevenue', '$totalCost'] } },
           },
         },
       ]),
@@ -117,8 +148,8 @@ export const getAllSales = async (req, res) => {
       pages: Math.ceil(total / limitNumber),
       currentPage: pageNumber,
       sales,
-      totalRevenue: totalsRow.totalRevenue || 0,
-      totalProfit: totalsRow.totalProfit || 0,
+      totalRevenue: roundMoney(totalsRow.totalRevenue || 0),
+      totalProfit: roundMoney(totalsRow.totalProfit || 0),
     });
   } catch (error) {
     console.error(error);
@@ -133,21 +164,20 @@ export const getAllSales = async (req, res) => {
 export const getSalesPerDay = async (req, res) => {
   try {
     const userId = req.workspaceOwnerId;
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, timeZone } = req.query;
+    const timezone = resolveTimeZone(timeZone);
     let match = { createdBy: userId };
 
-    if (startDate || endDate) {
-      match.date = {};
-      if (startDate) match.date.$gte = new Date(startDate + 'T00:00:00.000Z');
-      if (endDate) match.date.$lte = new Date(endDate + 'T23:59:59.999Z');
-    }
+    const rangeError = setDateRange(match, startDate, endDate);
+    if (rangeError) return res.status(400).json({ success: false, message: rangeError });
 
     const data = await Sales.aggregate([
       { $match: match },
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-          totalSales: { $sum: '$totalRevenue' }
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date', timezone } },
+          totalSales: { $sum: '$totalRevenue' },
+          totalProfit: { $sum: { $subtract: ['$totalRevenue', '$totalCost'] } },
         }
       },
       {
@@ -160,7 +190,14 @@ export const getSalesPerDay = async (req, res) => {
       { $sort: { date: 1 } }
     ]);
 
-    res.json({ success: true, data });
+    res.json({
+      success: true,
+      data: data.map((item) => ({
+        ...item,
+        totalSales: roundMoney(item.totalSales || 0),
+        totalProfit: roundMoney(item.totalProfit || 0),
+      })),
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: 'Failed to fetch sales per day' });
