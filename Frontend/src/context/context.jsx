@@ -64,13 +64,7 @@ export const GlobalProvider = ({ children }) => {
   });
 
   const toggleSidebar = () => setSidebarOpen((s) => !s);
-  const toggleTheme = () => {
-    setTheme((t) => {
-      if (t === 'white') return 'blue';
-      if (t === 'blue') return 'blue-black';
-      return 'white';
-    });
-  };
+  const toggleTheme = () => setTheme((t) => t === 'white' ? 'dark' : 'white');
   const openPalette = () => setIsPaletteOpen(true);
   const closePalette = () => setIsPaletteOpen(false);
 
@@ -103,7 +97,7 @@ export const GlobalProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.remove('theme-white', 'theme-blue', 'theme-blue-black');
+    document.documentElement.classList.remove('theme-white', 'theme-blue', 'theme-blue-black', 'theme-dark');
     document.documentElement.classList.add(`theme-${theme}`);
     localStorage.setItem('theme', theme);
   }, [theme]);
@@ -175,6 +169,11 @@ export const GlobalProvider = ({ children }) => {
       await fetchUserProfile(); // Refresh user data after product creation to update product count in profile
       return res;
     }
+    const analyzeProductImage = (file) => {
+      const body = new FormData();
+      body.append('image', file);
+      return API.post('/products/analyze-image', body, { headers: { 'Content-Type': 'multipart/form-data' } });
+    };
     const deleteProduct = async (id) => {
       const res = await API.delete(`/products/${id}`);
       await fetchUserProfile();
@@ -257,6 +256,7 @@ export const GlobalProvider = ({ children }) => {
     fetchDashboardMetrics,
     getProducts,
     createProduct,
+    analyzeProductImage,
     deleteProduct,
     getCategories,
     createCategory,

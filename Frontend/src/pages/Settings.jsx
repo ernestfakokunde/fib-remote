@@ -72,11 +72,10 @@ const Settings = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      <section className="glass-panel relative overflow-hidden rounded-[2rem] border border-white/10 px-6 py-8 shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.16),transparent_38%)]" />
+      <section className="glass-panel relative overflow-hidden rounded-2xl border border-[var(--border)] px-5 py-6 shadow-[var(--shadow)] sm:px-6 sm:py-8">
         <div className="relative grid grid-cols-1 gap-4 md:grid-cols-4">
           <div className="md:col-span-2 flex items-start gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-[1.4rem] border border-white/10 bg-white/10 text-[var(--text)]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--primary-soft)] text-[var(--primary)]">
               <UserRound size={28} />
             </div>
             <div>
@@ -89,7 +88,7 @@ const Settings = () => {
             </div>
           </div>
 
-          <div className="rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
             <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Current Plan</p>
             <div className="mt-3 flex items-center justify-between">
               <span className="text-lg font-semibold capitalize text-[var(--text)]">{user?.subscriptionPlan || 'free'}</span>
@@ -97,7 +96,7 @@ const Settings = () => {
             </div>
           </div>
 
-          <div className="rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
             <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Products</p>
             <div className="mt-3 flex items-center justify-between">
               <span className="text-lg font-semibold text-[var(--text)]">
@@ -113,7 +112,7 @@ const Settings = () => {
         </div>
       </section>
 
-      <section className="glass-panel rounded-3xl border p-6">
+      <section className="glass-panel rounded-2xl border border-[var(--border)] p-5 sm:p-6">
         <h2 className="mb-1 text-lg font-semibold text-[var(--text)]">Account Settings</h2>
         <p className="mb-4 text-sm text-[var(--muted)]">Manage your basic account information.</p>
 
@@ -134,7 +133,7 @@ const Settings = () => {
         </form>
       </section>
 
-      <section className="glass-panel rounded-3xl border p-6">
+      <section className="glass-panel rounded-2xl border border-[var(--border)] p-5 sm:p-6">
         <h2 className="mb-1 text-lg font-semibold text-[var(--text)]">Update Password</h2>
         <p className="mb-4 text-sm text-[var(--muted)]">Change your account password.</p>
 
@@ -159,7 +158,7 @@ const Settings = () => {
         </form>
       </section>
 
-      <section className="glass-panel flex items-center justify-between rounded-3xl border p-6">
+      <section className="glass-panel flex items-center justify-between rounded-2xl border border-[var(--border)] p-5 sm:p-6">
         <div>
           <h2 className="mb-1 text-lg font-semibold text-[var(--text)]">Sign Out</h2>
           <p className="text-sm text-[var(--muted)]">Sign out of your account on this device.</p>

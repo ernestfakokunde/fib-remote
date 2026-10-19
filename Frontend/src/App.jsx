@@ -17,12 +17,19 @@ import Settings from './pages/Settings.jsx';
 import Profile from './pages/Profile.jsx';
 import Premium from './pages/Premium.jsx';
 import StaffAccounts from './pages/StaffAccounts.jsx';
+import { lazy, Suspense } from 'react';
+import { LoaderCircle } from 'lucide-react';
+
+const Landing = lazy(() => import('./pages/Landing.jsx'));
+const Sales = lazy(() => import('./pages/Sales.jsx'));
 
 const App = () => {
   return (
-    <>
+    <Suspense fallback={<div className="grid min-h-screen place-items-center text-[var(--muted)]"><LoaderCircle className="animate-spin" /></div>}>
     <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false}/>
      <Routes>
+          <Route path='/welcome' element={<Landing/>}/>
+          <Route path='/sales' element={<ProtectedRoute><Layout /></ProtectedRoute>}><Route index element={<Sales/>}/></Route>
           <Route path='/' element={<ProtectedRoute><Layout /></ProtectedRoute>}>
              <Route index element={<Dashboard/>}/>
              <Route path='/stock-in' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><StockIn/></ProtectedRoute>}/>
@@ -39,7 +46,7 @@ const App = () => {
           <Route path='/login' element={<Login />} />
          
      </Routes>
-    </>
+    </Suspense>
     
   )
 }

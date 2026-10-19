@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Loader2, Trash2 } from "lucide-react";
+import { Search, Plus, Loader2, Trash2, Camera } from "lucide-react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "../context/context";
 import Modal from '../components/Modal';
 import SpectraLogo from '../assets/spectra.png';
+import { Input, Skeleton } from '../components/ui';
 
 const PAGE_SIZE = 10;
 
@@ -57,8 +58,28 @@ export default function Products() {
   const [isSavingCategory, setIsSavingCategory] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState("");
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, total: 0 });
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
 
-  const { getProducts, createProduct, deleteProduct, getCategories, createCategory, permissions, isSalesperson } = useGlobalContext();
+  const { getProducts, createProduct, deleteProduct, getCategories, createCategory, analyzeProductImage, permissions, isSalesperson } = useGlobalContext();
+
+  const handleImageAnalysis = async (file) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 8 * 1024 * 1024) {
+      toast.error('Choose a JPG, PNG, or WebP image under 8 MB.');
+      return;
+    }
+    setImagePreview(URL.createObjectURL(file));
+    setAnalyzingImage(true);
+    try {
+      const { data } = await analyzeProductImage(file);
+      const details = data.data || data.product || data;
+      setProductForm((form) => ({ ...form, name: details.name || form.name, description: details.description || form.description, ...(details.category ? { category: categories.find((item) => item.name?.toLowerCase() === details.category.toLowerCase())?._id || form.category } : {}) }));
+      toast.success('Product details added. Review and complete the form.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Image analysis is unavailable. You can enter product details manually.');
+    } finally { setAnalyzingImage(false); }
+  };
 
   const updateProductForm = (updates) => {
     setProductForm((prev) => ({ ...prev, ...updates }));
@@ -212,22 +233,19 @@ export default function Products() {
   };
 
   return (
-    <div className="page-shell min-h-screen bg-[var(--bg)] overflow-x-hidden text-[var(--text)]">
+        <div className="page-shell min-h-screen overflow-x-hidden text-[var(--text)]">
       <div>
         <div className="flex items-start justify-between flex-wrap mb-6">
-          <div className="flex items-center gap-4">
-            <div className="rounded-3xl bg-[var(--surface)] p-3 shadow-lg ring-1 ring-white/10">
-              <img src={SpectraLogo} alt="Spectra" className="h-12 w-12 object-contain" />
-            </div>
+            <div className="flex items-center gap-4">
             <div>
-            <h1 className="text-2xl font-bold text-[var(--text)]">Products</h1>
-            <p className="text-sm mt-2 mb-2 text-[var(--muted)]">
+            <p className="text-sm text-[var(--muted)]">Inventory and availability</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--text)]">Products</h1>
+            <p className="mt-2 mb-2 text-sm text-[var(--muted)]">
               {isSalesperson ? "Browse product stock and pricing in view-only mode" : "Manage your inventory products"}
             </p>
             </div>
           </div>
           <div className="flex items-center mt-2 gap-3">
-            <button className="px-4 py-2 border border-[var(--border)] rounded-lg text-sm">Export</button>
+              <button className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm">Export</button>
             <button
               onClick={handleOpenAddModal}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm ${
@@ -245,12 +263,12 @@ export default function Products() {
           <form onSubmit={handleSearchSubmit} className="flex gap-3 items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] h-5 w-5" />
-              <input
+              <Input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search products by name or SKU..."
-                className="w-full pl-10 pr-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--surface)] text-[var(--text)] text-sm"
+                className="pl-10"
               />
             </div>
             <select
@@ -273,10 +291,10 @@ export default function Products() {
         </div>
 
         {/* Table for md and larger screens */}
-        <div className=" hidden lg:block bg-[var(--card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
+        <div className="hidden overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[var(--shadow)] lg:block">
           <div className="overflow-x-auto w-full">
             <table className="w-full table-auto min-w-full">
-              <thead className="bg-[var(--surface)]">
+                  <thead className="bg-[var(--surface)]">
                 <tr className="border-b border-[var(--border)]">
                   <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Product Name</th>
                   <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">SKU</th>
@@ -439,7 +457,7 @@ export default function Products() {
       </div>
 
       {showAddModal && (
-        <Modal onClose={() => setShowAddModal(false)} widthClass="max-w-2xl" topOffset="pt-10">
+        <Modal onClose={() => setShowAddModal(false)} title="Add product" widthClass="max-w-2xl" topOffset="pt-10">
           <div className="bg-[var(--card)] rounded-xl shadow-lg w-full max-h-[85vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -447,6 +465,11 @@ export default function Products() {
                 <button onClick={() => setShowAddModal(false)} className="text-[var(--muted)]">Close</button>
               </div>
               <form onSubmit={handleProductSubmit}>
+                <div className="mb-4 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm font-medium">Snap to add</p><p className="mt-1 max-w-sm text-xs text-[var(--muted)]">Get a name and description suggestion from a photo. Review everything before saving.</p></div><label className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium ${analyzingImage?'pointer-events-none opacity-60':''}`}><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(e)=>handleImageAnalysis(e.target.files?.[0])}/>{analyzingImage?<Loader2 className="h-4 w-4 animate-spin"/>:<Camera className="h-4 w-4"/>}{analyzingImage?'Analyzing photo':'Take or upload photo'}</label></div>
+                  {imagePreview && <div className="mt-3 flex items-center gap-3"><img src={imagePreview} alt="Selected product" className="h-14 w-14 rounded-lg object-cover"/><span className="text-xs text-[var(--muted)]">{analyzingImage?'Reading product details…':'Photo selected. Review suggested fields below.'}</span></div>}
+                  <p className="mt-2 text-[11px] text-[var(--muted)]">Image analysis is optional. You can always enter the details manually.</p>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--muted)] mb-1">Product Name*</label>
@@ -587,5 +610,6 @@ export default function Products() {
     </div>
   );
 }
+
 
 

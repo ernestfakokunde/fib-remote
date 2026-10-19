@@ -26,13 +26,9 @@ const Dashboard = () => {
 
   return (
     <div className='page-shell mt-2 text-[var(--text)]'>
-      <h2 className='animate-fade-up text-2xl font-semibold'>Dashboard</h2>
-      <p className='animate-fade-up mt-2 mb-4 text-[var(--muted)]' style={{ animationDelay: '90ms' }}>
-        {' '}
-        Welcome Back, Here's what is happening today
-      </p>
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm text-[var(--muted)]">Your business at a glance</p><h1 className='mt-1 text-2xl font-semibold tracking-tight'>Overview</h1></div><p className="text-sm text-[var(--muted)]">{new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</p></div>
 
-      <div className='grid gap-4 p-3 md:grid-cols-2 sm:p-4 lg:grid-cols-4 lg:p-5'>
+      <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
         <div className='animate-fade-up' style={{ animationDelay: '160ms' }}>
           <DashboardCard
             title='Total Products'
@@ -64,7 +60,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className='grid gap-4 p-3 sm:p-4 md:grid-cols-2 lg:grid-cols-2 lg:p-5'>
+      <div className='mt-5 grid gap-4 xl:grid-cols-2'>
         <div className='animate-pop-in min-w-0' style={{ animationDelay: '460ms' }}>
           <SalesChart />
         </div>
@@ -73,9 +69,9 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className='grid gap-4 p-3 md:grid-cols-2 sm:p-4 lg:grid-cols-2 lg:p-5'>
+      <div className='mt-5 grid gap-4 xl:grid-cols-2'>
         {/** Add  action button here */}
-        <div className='animate-fade-up grid grid-cols-2 gap-4 mt-4' style={{ animationDelay: '620ms' }}>
+        <div className='animate-fade-up grid grid-cols-1 gap-3 sm:grid-cols-2' style={{ animationDelay: '620ms' }}>
           <div className='animate-pop-in' style={{ animationDelay: '680ms' }}>
             <ActionCard
               bgColor='var(--primary)'
@@ -115,7 +111,7 @@ const Dashboard = () => {
         </div>
 
       </div>
-      <div className='animate-fade-up grid grid-cols-1 gap-4 p-3 sm:p-4 lg:p-5' style={{ animationDelay: '920ms' }}>
+      <div className='animate-fade-up mt-5 grid grid-cols-1 gap-4' style={{ animationDelay: '920ms' }}>
         <RecentActivities />
       </div>
       

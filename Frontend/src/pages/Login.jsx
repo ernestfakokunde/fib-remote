@@ -33,15 +33,15 @@ const Login = () => {
       className='flex min-h-screen items-center justify-center px-4 py-10'
       style={{ backgroundImage: 'var(--gradient)' }}
     >
-      <div className="glass-panel w-full max-w-md rounded-[2rem] border border-white/10 p-8 shadow-2xl sm:p-10">
+      <div className="glass-panel w-full max-w-md rounded-2xl border border-[var(--border)] p-6 shadow-[var(--shadow)] sm:p-9">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 rounded-3xl bg-white/10 p-4 ring-1 ring-white/10">
+          <div className="mb-4 rounded-2xl bg-[var(--primary-soft)] p-3">
             <img src={SpectraLogo} className='h-16 w-16 object-contain' alt='Spectra' />
           </div>
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--muted)]">
             Spectra
           </p>
-          <h2 className="mt-3 text-3xl font-semibold text-[var(--text)]">
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">
             Sign in
           </h2>
           <p className="mt-2 text-sm text-[var(--muted)]">
@@ -92,7 +92,7 @@ const Login = () => {
               value={email}
               required
               placeholder='Enter your email or username'
-              className="theme-input mt-1 rounded-2xl px-4 py-3"
+              className="theme-input mt-1 rounded-lg px-4 py-3"
             />
           </div>
 
@@ -108,14 +108,14 @@ const Login = () => {
               onChange={handleChange}
               required
               placeholder='Enter your password'
-              className="theme-input mt-1 rounded-2xl px-4 py-3"
+              className="theme-input mt-1 rounded-lg px-4 py-3"
             />
           </div>
 
           <button
             type='submit'
             disabled={loading}
-            className="theme-btn-primary mt-2 w-full rounded-2xl py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
+            className="theme-btn-primary mt-2 w-full rounded-lg py-3 font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Logging in...' : 'Log In'}
           </button>
