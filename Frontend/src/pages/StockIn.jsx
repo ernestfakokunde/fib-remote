@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useGlobalContext } from '../context/context';
 import Modal from '../components/Modal';
-import { Loader2, Plus } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import PurchaseItem from '../components/PurchaseItem';
 import PurchaseSummary from '../components/PurchaseSummary';
 import { toast } from 'react-toastify';
-import { localDateBoundary, localDateString } from '../utils/format';
+import { formatNumber, localDateBoundary, localDateString } from '../utils/format';
 import { downloadCsv } from '../utils/csv';
+import { Button, EmptyState, Skeleton } from '../components/ui';
 
 const filterButtonClass = (active) =>
   `min-h-10 rounded-lg px-3 py-2 text-sm font-medium transition ${
@@ -139,53 +140,48 @@ const StockIn = () => {
               <p className="app-page-copy mt-2">Record restocks and keep purchase costs tied to each product.</p>
             </div>
             <div className="flex w-full gap-2 sm:w-auto">
-              <button onClick={exportPurchases} disabled={!purchases.length} className="app-control flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium disabled:opacity-50 sm:flex-none">Export page</button>
-              <button onClick={openModal} className="app-control flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white sm:flex-none">
-                <Plus className="h-4 w-4" />
-                Record Purchase
-              </button>
+              <Button variant="secondary" onClick={exportPurchases} disabled={!purchases.length} className="flex-1 sm:flex-none"><Download size={15}/> Export page</Button>
+              <Button onClick={openModal} className="flex-1 sm:flex-none"><Plus size={16}/> Record purchase</Button>
             </div>
         </header>
 
         <PurchaseSummary totalValue={Number(summary.totalValue || 0)} transactions={summary.transactions} />
 
-        <section className="app-card p-3 sm:p-4">
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <button onClick={() => { setFilterMode('today'); setPage(1); }} className={filterButtonClass(filterMode === 'today')}>Today</button>
-            <button onClick={() => { setFilterMode('last7'); setPage(1); }} className={filterButtonClass(filterMode === 'last7')}>Last 7 days</button>
-            <button onClick={() => { setFilterMode('month'); setPage(1); }} className={filterButtonClass(filterMode === 'month')}>This month</button>
-            <button onClick={() => { setFilterMode('custom'); setPage(1); }} className={filterButtonClass(filterMode === 'custom')}>Custom</button>
+        <section className="app-card overflow-hidden">
+          <div className="flex flex-col gap-3 border-b border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div><h2 className="text-sm font-semibold text-[var(--text)]">Recent stock in</h2><p className="mt-1 text-xs text-[var(--muted)]">{formatNumber(summary.transactions)} restock records</p></div>
+            <div className="flex flex-wrap gap-1 rounded-lg bg-[var(--surface)] p-1">
+              <button onClick={() => { setFilterMode('all'); setPage(1); }} className={filterButtonClass(filterMode === 'all')}>All time</button>
+              <button onClick={() => { setFilterMode('today'); setPage(1); }} className={filterButtonClass(filterMode === 'today')}>Today</button>
+              <button onClick={() => { setFilterMode('last7'); setPage(1); }} className={filterButtonClass(filterMode === 'last7')}>7 days</button>
+              <button onClick={() => { setFilterMode('month'); setPage(1); }} className={filterButtonClass(filterMode === 'month')}>This month</button>
+              <button onClick={() => { setFilterMode('custom'); setPage(1); }} className={filterButtonClass(filterMode === 'custom')}>Custom</button>
+            </div>
           </div>
 
           {filterMode === 'custom' ? (
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-3 border-b border-[var(--border)] bg-[var(--surface)] p-4 sm:flex-row sm:items-end">
               <div>
-                <label className="block text-xs font-medium text-[var(--muted)]">Start</label>
-                <input type="date" className="theme-input app-control mt-2 px-3 py-2" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} />
+                <label className="mb-1 block text-xs font-medium text-[var(--muted)]">From</label>
+                <input type="date" className="theme-input app-control px-3" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--muted)]">End</label>
-                <input type="date" className="theme-input app-control mt-2 px-3 py-2" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} />
+                <label className="mb-1 block text-xs font-medium text-[var(--muted)]">To</label>
+                <input type="date" className="theme-input app-control px-3" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} />
               </div>
-              <button onClick={() => { fetchPurchases(1); }} className="app-control rounded-lg bg-[var(--primary)] px-4 text-sm font-semibold text-white">Apply</button>
+              <Button onClick={() => fetchPurchases(1)}>Apply range</Button>
             </div>
           ) : null}
 
-          {isLoading ? (
-            <div className="py-10 text-center text-[var(--muted)]"><Loader2 className="mx-auto animate-spin" /></div>
-          ) : (
-            <div className="space-y-3">
-              {purchases.length === 0 ? <div className="py-10 text-center text-sm text-[var(--muted)]">No purchases in this period.</div> : purchases.map((p) => (
-                <PurchaseItem key={p._id} purchase={p} />
-              ))}
-
-              <div className="mt-4 flex items-center justify-center gap-3 text-sm text-[var(--muted)]">
-                <button disabled={page <= 1} onClick={() => { const np = Math.max(1, page - 1); setPage(np); fetchPurchases(np); }} className="app-control border border-[var(--border)] bg-[var(--card)] px-3 text-xs font-medium disabled:opacity-50">Previous</button>
-                <div>Page {page} / {pages}</div>
-                <button disabled={page >= pages} onClick={() => { const np = Math.min(pages, page + 1); setPage(np); fetchPurchases(np); }} className="app-control border border-[var(--border)] bg-[var(--card)] px-3 text-xs font-medium disabled:opacity-50">Next</button>
-              </div>
-            </div>
-          )}
+          {isLoading ? <div className="space-y-3 p-4">{[1, 2, 3, 4].map((row) => <Skeleton key={row} className="h-14 w-full" />)}</div> : purchases.length === 0 ? <EmptyState title="No stock-ins in this period" description="Record a restock to add units and supplier costs to your inventory." action={<Button onClick={openModal} className="mt-4"><Plus size={15}/> Record a restock</Button>} /> : <>
+            <div className="hidden overflow-x-auto lg:block"><table className="app-table min-w-[680px]"><thead><tr>{['Product', 'Supplier', 'Date', 'Quantity', 'Unit cost', 'Total cost'].map((label) => <th key={label}>{label}</th>)}</tr></thead><tbody>{purchases.map((purchase) => <tr key={purchase._id}>
+              <td><div className="font-semibold text-[var(--text)]">{purchase.product?.name || 'Product'}</div></td><td className="text-[var(--muted)]">{purchase.supplier || 'Unknown supplier'}</td>
+              <td className="whitespace-nowrap text-[var(--muted)]">{new Date(purchase.date || purchase.createdAt).toLocaleDateString()}</td><td className="tabular-nums">{formatNumber(purchase.quantity)} units</td>
+              <td className="money-value whitespace-nowrap text-[var(--muted)]">{formatCurrency(purchase.costPrice)}</td><td className="money-value whitespace-nowrap font-semibold">{formatCurrency(purchase.totalCost)}</td>
+            </tr>)}</tbody></table></div>
+            <div className="space-y-2 p-3 lg:hidden">{purchases.map((purchase) => <PurchaseItem key={purchase._id} purchase={purchase} />)}</div>
+            <div className="flex flex-col gap-3 border-t border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-5"><span>Page {page} of {pages} · {formatNumber(summary.transactions)} records</span><div className="flex justify-end gap-2"><Button variant="secondary" disabled={page <= 1 || isLoading} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</Button><Button variant="secondary" disabled={page >= pages || isLoading} onClick={() => setPage((current) => Math.min(pages, current + 1))}>Next</Button></div></div>
+          </>}
         </section>
 
       {showModal ? (

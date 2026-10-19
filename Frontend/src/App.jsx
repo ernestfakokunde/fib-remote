@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Layout from './Layout.jsx';
 import ProtectedRoute from './protectedRoute/protectedRoute.jsx';
 import { lazy, Suspense } from 'react';
-import { LoaderCircle } from 'lucide-react';
+import LoadingScreen from './components/LoadingScreen.jsx';
 
 const Landing = lazy(() => import('./pages/Landing.jsx'));
 const Sales = lazy(() => import('./pages/Sales.jsx'));
@@ -25,7 +25,7 @@ const Login = lazy(() => import('./pages/Login.jsx'));
 
 const App = () => {
   return (
-    <Suspense fallback={<div className="grid min-h-screen place-items-center text-[var(--muted)]"><LoaderCircle className="animate-spin" /></div>}>
+    <Suspense fallback={<LoadingScreen label="Opening your workspace" />}>
     <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false}/>
      <Routes>
           <Route path='/welcome' element={<Landing/>}/>

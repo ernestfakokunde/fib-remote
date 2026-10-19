@@ -52,7 +52,7 @@ body {
 .page-shell {
   margin-inline: auto;
   width: 100%;
-  max-width: 80rem;
+  max-width: 96rem;
   padding-inline: 1.5rem;
 }
 
@@ -208,6 +208,12 @@ html:not(.theme-dark) .text-sky-100, html:not(.theme-dark) .text-cyan-100, html:
 .app-card { border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
 .app-control { min-height: 42px; border-radius: 10px; }
 .money-value { font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.025em; }
+.app-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .875rem; }
+.app-table thead { background: var(--surface); color: var(--muted); font-size: .75rem; }
+.app-table th { padding: .8rem 1rem; font-weight: 600; white-space: nowrap; }
+.app-table td { padding: .85rem 1rem; border-top: 1px solid var(--border); vertical-align: middle; }
+.app-table tbody tr { transition: background-color 150ms ease; }
+.app-table tbody tr:hover { background: var(--surface); }
 
 :focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 55%, transparent); outline-offset: 2px; }
 

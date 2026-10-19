@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context';
+import LoadingScreen from '../components/LoadingScreen';
 
 const getEffectiveRole = (user) => {
   if (!user) return 'manager';
@@ -25,7 +26,7 @@ const ProtectedRoute = ({ children, allowedRoles = null, redirectTo = '/' }) => 
   }, [allowedRoles, loading, user, role, location.pathname]);
 
   if (loading) {
-    return <div className="p-6 text-[var(--muted)]">Loading...</div>;
+    return <LoadingScreen />;
   }
 
   if (!user) {

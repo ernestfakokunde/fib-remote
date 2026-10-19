@@ -300,20 +300,12 @@ export default function Products() {
 
         {/* Table for md and larger screens */}
         <div className="app-card hidden overflow-hidden lg:block">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full table-auto min-w-full">
-                  <thead className="bg-[var(--surface)]">
+          <div className="w-full overflow-x-auto">
+            <table className="app-table min-w-[1320px]">
+              <thead>
                 <tr className="border-b border-[var(--border)]">
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Product Name</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">SKU</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Category</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Supplier</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Cost Price</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Selling Price</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Quantity</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Stock Value</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Status</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-[var(--muted)]">Actions</th>
+                  <th>Product name</th><th>SKU</th>
+                  <th>Category</th><th>Supplier</th><th>Cost Price</th><th>Selling Price</th><th>Quantity</th><th>Stock Value</th><th>Status</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -348,17 +340,16 @@ export default function Products() {
                         : product.category || "Uncategorized";
 
                     return (
-                      <tr key={product._id || product.sku || product.name} className="border-b border-[var(--border)] hover:bg-[var(--surface)]">
-                        <td className="py-4 px-4 text-sm font-medium text-[var(--text)]">{product.name}</td>
-                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{product.sku}</td>
-                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{categoryLabel}</td>
-                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{product.supplier || "Unknown"}</td>
-                        <td className="py-4 px-4 text-sm tabular-nums text-[var(--muted)]">{formatCurrency(product.costPrice)}</td>
-                        <td className="py-4 px-4 text-sm tabular-nums text-[var(--muted)]">{formatCurrency(product.sellingPrice)}</td>
-                        <td className="py-4 px-4 text-sm text-[var(--muted)]">{quantity}</td>
-                        <td className="py-4 px-4 text-sm font-medium tabular-nums text-[var(--text)]">{formatCurrency(stockValue)}</td>
+                      <tr key={product._id || product.sku || product.name}>
+                        <td><div className="max-w-40 font-semibold text-[var(--text)]">{product.name}</div></td><td className="whitespace-nowrap text-[var(--muted)]">{product.sku}</td>
+                        <td className="text-[var(--muted)]">{categoryLabel}</td>
+                        <td className="text-[var(--muted)]">{product.supplier || "Unknown"}</td>
+                        <td className="money-value whitespace-nowrap text-[var(--muted)]">{formatCurrency(product.costPrice)}</td>
+                        <td className="money-value whitespace-nowrap text-[var(--muted)]">{formatCurrency(product.sellingPrice)}</td>
+                        <td className="tabular-nums">{quantity}</td>
+                        <td className="money-value whitespace-nowrap font-semibold text-[var(--text)]">{formatCurrency(stockValue)}</td>
                         <td className="py-4 px-4">
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
+                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${statusColor}`}>
                             {derivedStatus}
                           </span>
                         </td>
@@ -368,7 +359,7 @@ export default function Products() {
                               type="button"
                               onClick={() => handleDeleteProduct(product._id)}
                               disabled={deletingProductId === product._id}
-                              className="inline-flex items-center gap-2 rounded-lg border border-red-300/30 bg-red-400/10 px-3 py-1.5 text-xs text-red-600 disabled:opacity-60"
+                              className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-1.5 text-xs font-medium text-[var(--danger)] transition hover:bg-rose-500/10 disabled:opacity-60"
                             >
                               {deletingProductId === product._id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
                               Delete
@@ -384,16 +375,16 @@ export default function Products() {
             </table>
           </div>
 
-          <div className="flex items-center justify-between px-4 py-3 border-t border-[var(--border)]">
+          <div className="flex items-center justify-between border-t border-[var(--border)] px-4 py-3">
             <p className="text-sm text-[var(--muted)]">
-              Showing page {pagination.currentPage} of {pagination.totalPages} ({pagination.total} products)
+              Showing page {pagination.currentPage} of {pagination.totalPages} ({pagination.total} {pagination.total === 1 ? 'product' : 'products'})
             </p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => handlePageChange(-1)}
                 disabled={pagination.currentPage === 1 || isLoading}
-                className="px-3 py-1 border border-[var(--border)] rounded text-sm"
+                className="app-control rounded-lg border border-[var(--border)] px-3 text-sm text-[var(--text)] disabled:opacity-40"
               >
                 Previous
               </button>
@@ -401,7 +392,7 @@ export default function Products() {
                 type="button"
                 onClick={() => handlePageChange(1)}
                 disabled={pagination.currentPage === pagination.totalPages || isLoading}
-                className="px-3 py-1 border border-[var(--border)] rounded text-sm"
+                className="app-control rounded-lg border border-[var(--border)] px-3 text-sm text-[var(--text)] disabled:opacity-40"
               >
                 Next
               </button>
@@ -410,13 +401,13 @@ export default function Products() {
         </div>
 
         {/* Responsive cards for small screens - avoid horizontal table scroll */}
-        <div className="lg:hidden px-2 space-y-3">
+        <div className="space-y-3 px-1 lg:hidden">
           {isLoading && (
-            <div className="py-8 text-center text-[var(--muted)]">Loading products...</div>
+            <div className="space-y-3">{[1, 2, 3].map((row) => <Skeleton key={row} className="h-40 w-full" />)}</div>
           )}
 
           {!isLoading && products.length === 0 && (
-            <div className="py-8 text-center text-[var(--muted)]">No products yet.</div>
+            <div className="app-card"><div className="py-9 text-center"><p className="text-sm font-medium">No products found</p><p className="mt-1 text-xs text-[var(--muted)]">Try another search or category.</p></div></div>
           )}
 
           {!isLoading && products.map((product) => {
@@ -437,12 +428,13 @@ export default function Products() {
                   <h3 className="text-sm font-medium text-[var(--text)]">{product.name}</h3>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>{derivedStatus}</span>
                 </div>
-                <div className="mt-3 text-sm text-[var(--muted)] grid grid-cols-2 gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-[var(--muted)]">
                   <div><span className="text-[var(--muted)]">SKU</span><div className="text-[var(--text)]">{product.sku}</div></div>
                   <div><span className="text-[var(--muted)]">Category</span><div className="text-[var(--text)]">{categoryLabel}</div></div>
                   <div><span className="text-[var(--muted)]">Supplier</span><div className="text-[var(--text)]">{product.supplier || 'Unknown'}</div></div>
                   <div><span className="text-[var(--muted)]">Quantity</span><div className="text-[var(--text)]">{quantity}</div></div>
                   <div><span className="text-[var(--muted)]">Cost</span><div className="tabular-nums text-[var(--text)]">{formatCurrency(product.costPrice)}</div></div>
+                  <div><span className="text-[var(--muted)]">Selling price</span><div className="tabular-nums text-[var(--text)]">{formatCurrency(product.sellingPrice)}</div></div>
                   <div><span className="text-[var(--muted)]">Stock Value</span><div className="tabular-nums text-[var(--text)]">{formatCurrency(stockValue)}</div></div>
                 </div>
                 {permissions.canManageProducts ? (
@@ -451,7 +443,7 @@ export default function Products() {
                       type="button"
                       onClick={() => handleDeleteProduct(product._id)}
                       disabled={deletingProductId === product._id}
-                      className="inline-flex items-center gap-2 rounded-lg border border-red-300/30 bg-red-400/10 px-3 py-1.5 text-xs text-red-600 disabled:opacity-60"
+                      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-1.5 text-xs font-medium text-[var(--danger)] transition hover:bg-rose-500/10 disabled:opacity-60"
                     >
                       {deletingProductId === product._id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
                       Delete
@@ -461,6 +453,10 @@ export default function Products() {
               </div>
             );
           })}
+          <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-xs text-[var(--muted)]">
+            <span>Page {pagination.currentPage} of {pagination.totalPages} · {pagination.total} {pagination.total === 1 ? 'product' : 'products'}</span>
+            <div className="flex gap-2"><button type="button" onClick={() => handlePageChange(-1)} disabled={pagination.currentPage === 1 || isLoading} className="app-control rounded-lg border border-[var(--border)] px-3 text-[var(--text)] disabled:opacity-40">Previous</button><button type="button" onClick={() => handlePageChange(1)} disabled={pagination.currentPage === pagination.totalPages || isLoading} className="app-control rounded-lg border border-[var(--border)] px-3 text-[var(--text)] disabled:opacity-40">Next</button></div>
+          </div>
         </div>
       </div>
 

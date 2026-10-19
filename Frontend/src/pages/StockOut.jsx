@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import SaleCard from '../components/SaleCard';
 import { useGlobalContext } from '../context/context';
 import Modal from '../components/Modal';
-import { Loader2, Plus } from 'lucide-react';
+import { Download, Plus, UserRound } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { formatCurrency, formatNumber, localDateBoundary, localDateString } from '../utils/format';
 import { downloadCsv } from '../utils/csv';
+import { Button, EmptyState, Skeleton } from '../components/ui';
 
 const filterButtonClass = (active) =>
   `min-h-10 rounded-lg px-3 py-2 text-sm font-medium transition ${
@@ -140,11 +141,8 @@ const StockOut = () => {
               <p className="app-page-copy mt-2">Record sales and keep the stock balance current.</p>
             </div>
             <div className="flex w-full gap-2 sm:w-auto">
-              <button onClick={exportSales} disabled={!sales.length} className="app-control flex-1 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium disabled:opacity-50 sm:flex-none">Export page</button>
-              <button onClick={openModal} className="app-control flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white sm:flex-none">
-                <Plus className="h-4 w-4" />
-                Record Sale
-              </button>
+              <Button variant="secondary" onClick={exportSales} disabled={!sales.length} className="flex-1 sm:flex-none"><Download size={15}/> Export page</Button>
+              <Button onClick={openModal} className="flex-1 sm:flex-none"><Plus size={16}/> Record sale</Button>
             </div>
         </header>
 
@@ -154,55 +152,46 @@ const StockOut = () => {
           <SaleCard title="Total Sales" value={formatNumber(totals.totalSales)} />
         </div>
 
-        <section className="app-card p-3 sm:p-4">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-[var(--text)]">Recent sales</h2>
-            <div className="flex flex-wrap items-center gap-2">
+        <section className="app-card overflow-hidden">
+          <div className="flex flex-col gap-3 border-b border-[var(--border)] p-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+            <div><h2 className="text-sm font-semibold text-[var(--text)]">Recent transactions</h2><p className="mt-1 text-xs text-[var(--muted)]">{formatNumber(totals.totalSales)} sales in the selected period</p></div>
+            <div className="flex flex-wrap gap-1 rounded-lg bg-[var(--surface)] p-1">
+              <button onClick={() => { setFilterMode('all'); setPage(1); }} className={filterButtonClass(filterMode === 'all')}>All time</button>
               <button onClick={() => { setFilterMode('today'); setPage(1); }} className={filterButtonClass(filterMode === 'today')}>Today</button>
-              <button onClick={() => { setFilterMode('last7'); setPage(1); }} className={filterButtonClass(filterMode === 'last7')}>Last 7 days</button>
+              <button onClick={() => { setFilterMode('last7'); setPage(1); }} className={filterButtonClass(filterMode === 'last7')}>7 days</button>
               <button onClick={() => { setFilterMode('month'); setPage(1); }} className={filterButtonClass(filterMode === 'month')}>This month</button>
               <button onClick={() => { setFilterMode('custom'); setPage(1); }} className={filterButtonClass(filterMode === 'custom')}>Custom</button>
             </div>
           </div>
 
           {filterMode === 'custom' ? (
-            <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div className="flex flex-col gap-3 border-b border-[var(--border)] bg-[var(--surface)] p-4 sm:flex-row sm:items-end">
               <div>
-                <label className="block text-sm text-[var(--muted)]">Start</label>
-                <input type="date" className="theme-input app-control mt-2 px-3 py-2" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} />
+                <label className="mb-1 block text-xs text-[var(--muted)]">From</label>
+                <input type="date" className="theme-input app-control px-3" value={startDateFilter} onChange={(e) => setStartDateFilter(e.target.value)} />
               </div>
               <div>
-                <label className="block text-sm text-[var(--muted)]">End</label>
-                <input type="date" className="theme-input app-control mt-2 px-3 py-2" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} />
+                <label className="mb-1 block text-xs text-[var(--muted)]">To</label>
+                <input type="date" className="theme-input app-control px-3" value={endDateFilter} onChange={(e) => setEndDateFilter(e.target.value)} />
               </div>
-              <button onClick={() => { fetchSales(1); }} className="app-control rounded-lg bg-[var(--primary)] px-4 text-sm font-semibold text-white">Apply</button>
+              <Button onClick={() => fetchSales(1)}>Apply range</Button>
             </div>
           ) : null}
 
-          {isLoading ? (
-            <div className="py-10 text-center text-[var(--muted)]"><Loader2 className="mx-auto animate-spin" /></div>
-          ) : (
-            <div className="space-y-3">
-              {sales.length === 0 ? <div className="py-10 text-center text-sm text-[var(--muted)]">No sales in this period.</div> : sales.map((s) => (
-                <div key={s._id} className="app-card flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold text-[var(--text)]">{s.product?.name || 'Product'}</div>
-                    <div className="mt-1 text-xs text-[var(--muted)]">{formatNumber(s.quantity)} units · {formatCurrency(s.sellingPrice)} each</div>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:gap-1">
-                    <span className="text-sm font-semibold tabular-nums text-[var(--text)]">{formatCurrency(s.totalRevenue)}</span>
-                    <span className="text-xs text-[var(--muted)]">{new Date(s.date || s.createdAt).toLocaleString()}</span>
-                  </div>
-                </div>
-              ))}
-
-              <div className="mt-4 flex items-center justify-center gap-3 text-sm text-[var(--muted)]">
-                <button disabled={page <= 1} onClick={() => { const p = Math.max(1, page - 1); setPage(p); fetchSales(p); }} className="app-control border border-[var(--border)] bg-[var(--card)] px-3 text-xs font-medium disabled:opacity-50">Previous</button>
-                <div>Page {page} / {pages}</div>
-                <button disabled={page >= pages} onClick={() => { const p = Math.min(pages, page + 1); setPage(p); fetchSales(p); }} className="app-control border border-[var(--border)] bg-[var(--card)] px-3 text-xs font-medium disabled:opacity-50">Next</button>
-              </div>
-            </div>
-          )}
+          {isLoading ? <div className="space-y-3 p-4">{[1, 2, 3, 4].map((row) => <Skeleton key={row} className="h-14 w-full" />)}</div> : sales.length === 0 ? <EmptyState title="No sales in this period" description="Record a sale and it will appear here with its revenue and profit." action={<Button onClick={openModal} className="mt-4"><Plus size={15} /> Record a sale</Button>} /> : <>
+            <div className="hidden overflow-x-auto lg:block"><table className="app-table min-w-[760px]"><thead><tr>{['Product', 'Customer', 'Date', 'Quantity', 'Unit price', 'Revenue', 'Profit'].map((label) => <th key={label}>{label}</th>)}</tr></thead><tbody>{sales.map((sale) => <tr key={sale._id}>
+              <td><div className="font-semibold text-[var(--text)]">{sale.product?.name || 'Product'}</div><div className="mt-0.5 text-xs text-[var(--muted)]">{sale.product?.sku || 'No SKU'}</div></td>
+              <td><span className="inline-flex items-center gap-2 text-[var(--muted)]"><UserRound size={14} />{sale.customer || 'Walk-in Customer'}</span></td>
+              <td className="whitespace-nowrap text-[var(--muted)]">{new Date(sale.date || sale.createdAt).toLocaleString()}</td>
+              <td className="tabular-nums">{formatNumber(sale.quantity)}</td><td className="money-value whitespace-nowrap text-[var(--muted)]">{formatCurrency(sale.sellingPrice)}</td>
+              <td className="money-value whitespace-nowrap font-semibold">{formatCurrency(sale.totalRevenue)}</td><td className="money-value whitespace-nowrap font-medium text-[var(--success)]">{formatCurrency(sale.profit)}</td>
+            </tr>)}</tbody></table></div>
+            <div className="space-y-2 p-3 lg:hidden">{sales.map((sale) => <article key={sale._id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+              <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate text-sm font-semibold">{sale.product?.name || 'Product'}</h3><p className="mt-1 text-xs text-[var(--muted)]">{sale.customer || 'Walk-in Customer'}</p></div><span className="money-value shrink-0 text-sm font-semibold">{formatCurrency(sale.totalRevenue)}</span></div>
+              <div className="mt-3 flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs"><span className="text-[var(--muted)]">{formatNumber(sale.quantity)} units · {new Date(sale.date || sale.createdAt).toLocaleDateString()}</span><span className="money-value font-medium text-[var(--success)]">{formatCurrency(sale.profit)} profit</span></div>
+            </article>)}</div>
+            <div className="flex flex-col gap-3 border-t border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-5"><span>Page {page} of {pages} · {formatNumber(totals.totalSales)} sales</span><div className="flex justify-end gap-2"><Button variant="secondary" disabled={page <= 1 || isLoading} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</Button><Button variant="secondary" disabled={page >= pages || isLoading} onClick={() => setPage((current) => Math.min(pages, current + 1))}>Next</Button></div></div>
+          </>}
         </section>
 
       {showModal ? (

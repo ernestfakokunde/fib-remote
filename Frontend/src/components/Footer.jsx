@@ -1,4 +1,4 @@
-import BrandLogo from './BrandLogo';
+﻿import BrandLogo from './BrandLogo';
 
 export default function Footer() {
   return <footer className="mt-12 border-t border-[var(--border)] bg-[var(--card)] text-[var(--text)]">

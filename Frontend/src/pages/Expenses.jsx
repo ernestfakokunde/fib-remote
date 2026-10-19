@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Download, Plus, Trash2 } from 'lucide-react';
+import { Download, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context';
 import Modal from '../components/Modal';
 import { formatCurrency, formatNumber } from '../utils/format';
 import { downloadCsv } from '../utils/csv';
+import { Input } from '../components/ui';
 
 const blankExpense = { amount: '', description: '', category: '', date: '' };
 
@@ -28,6 +29,8 @@ export default function Expenses() {
   const [savingCategory, setSavingCategory] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -112,9 +115,15 @@ export default function Expenses() {
     }
   };
 
+  const visibleExpenses = expenses.filter((expense) => {
+    const matchesSearch = !searchTerm || `${expense.description || ''} ${expense.category?.name || ''}`.toLowerCase().includes(searchTerm.trim().toLowerCase());
+    const matchesCategory = !selectedCategory || expense.category?._id === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   const exportExpenses = () => downloadCsv('spectra-expenses-page.csv',
     ['Date', 'Category', 'Amount (NGN)', 'Description'],
-    expenses.map((expense) => [expense.date || expense.createdAt || '', expense.category?.name || 'Uncategorized', Number.isFinite(Number(expense.amount)) ? Number(expense.amount).toFixed(2) : '', expense.description || ''])
+    visibleExpenses.map((expense) => [expense.date || expense.createdAt || '', expense.category?.name || 'Uncategorized', Number.isFinite(Number(expense.amount)) ? Number(expense.amount).toFixed(2) : '', expense.description || ''])
   );
 
   const ExpenseActions = ({ expense }) => (
@@ -146,21 +155,25 @@ export default function Expenses() {
       </section>
 
       <section className="app-card overflow-hidden" aria-label="Recent expenses">
-        <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3 sm:px-5">
-          <div><h2 className="text-sm font-semibold text-[var(--text)]">Recent expenses</h2><p className="mt-0.5 text-xs text-[var(--muted)]">Latest 50 records</p></div>
+        <div className="flex flex-col gap-3 border-b border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div><h2 className="text-sm font-semibold text-[var(--text)]">Recent expenses</h2><p className="mt-0.5 text-xs text-[var(--muted)]">{visibleExpenses.length} of {expenses.length} latest records</p></div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <label className="relative sm:w-60"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"/><Input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search latest records" className="pl-9"/></label>
+            <select aria-label="Filter expenses by category" className="theme-input app-control px-3 text-sm sm:w-48" value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)}><option value="">All categories</option>{categories.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}</select>
+          </div>
         </div>
         <div className="hidden overflow-x-auto lg:block">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-[var(--surface)] text-xs text-[var(--muted)]"><tr><th className="px-5 py-3 font-medium">Category</th><th className="px-5 py-3 font-medium">Amount</th><th className="px-5 py-3 font-medium">Description</th><th className="px-5 py-3 font-medium">Date</th><th className="px-5 py-3" /></tr></thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {loading ? <tr><td colSpan={5} className="px-5 py-10 text-center text-[var(--muted)]">Loading expenses…</td></tr> : expenses.length === 0 ? <tr><td colSpan={5} className="px-5 py-12 text-center text-[var(--muted)]">No expenses recorded yet.</td></tr> : expenses.map((expense) => (
-                <tr key={expense._id} className="transition hover:bg-[var(--surface)]"><td className="px-5 py-3"><span className="inline-flex items-center gap-2 rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-medium text-[var(--text)]"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: expense.category?.color || 'var(--primary)' }} />{expense.category?.name || 'Uncategorized'}</span></td><td className="money-value px-5 py-3 font-semibold">{formatCurrency(expense.amount)}</td><td className="max-w-xs truncate px-5 py-3 text-[var(--muted)]">{expense.description || '—'}</td><td className="px-5 py-3 text-xs text-[var(--muted)]">{new Date(expense.date || expense.createdAt).toLocaleDateString()}</td><td className="px-5 py-2"><ExpenseActions expense={expense} /></td></tr>
+          <table className="app-table min-w-[720px]">
+            <thead><tr><th>Category</th><th>Amount</th><th>Description</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+              {loading ? <tr><td colSpan={5} className="py-10 text-center text-[var(--muted)]">Loading expenses…</td></tr> : visibleExpenses.length === 0 ? <tr><td colSpan={5} className="py-12 text-center text-[var(--muted)]">{expenses.length ? 'No expenses match these filters.' : 'No expenses recorded yet.'}</td></tr> : visibleExpenses.map((expense) => (
+                <tr key={expense._id}><td><span className="inline-flex items-center gap-2 rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-medium text-[var(--text)]"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: expense.category?.color || 'var(--primary)' }} />{expense.category?.name || 'Uncategorized'}</span></td><td className="money-value whitespace-nowrap font-semibold">{formatCurrency(expense.amount)}</td><td className="max-w-xs truncate text-[var(--muted)]">{expense.description || '—'}</td><td className="whitespace-nowrap text-xs text-[var(--muted)]">{new Date(expense.date || expense.createdAt).toLocaleDateString()}</td><td><ExpenseActions expense={expense} /></td></tr>
               ))}
             </tbody>
           </table>
         </div>
         <div className="space-y-2 p-3 lg:hidden">
-          {loading ? <div className="py-10 text-center text-sm text-[var(--muted)]">Loading expenses…</div> : expenses.length === 0 ? <div className="py-10 text-center text-sm text-[var(--muted)]">No expenses recorded yet.</div> : expenses.map((expense) => (
+          {loading ? <div className="py-10 text-center text-sm text-[var(--muted)]">Loading expenses…</div> : visibleExpenses.length === 0 ? <div className="py-10 text-center text-sm text-[var(--muted)]">{expenses.length ? 'No expenses match these filters.' : 'No expenses recorded yet.'}</div> : visibleExpenses.map((expense) => (
             <article key={expense._id} className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
               <div className="flex items-start justify-between gap-2"><div className="min-w-0"><span className="inline-flex max-w-full items-center gap-2 rounded-full bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-medium text-[var(--text)]"><span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: expense.category?.color || 'var(--primary)' }} /><span className="truncate">{expense.category?.name || 'Uncategorized'}</span></span><p className="mt-2 truncate text-xs text-[var(--muted)]">{expense.description || 'No description'}</p></div><ExpenseActions expense={expense} /></div>
               <div className="mt-3 flex items-center justify-between"><span className="text-xs text-[var(--muted)]">{new Date(expense.date || expense.createdAt).toLocaleDateString()}</span><span className="money-value text-sm font-semibold">{formatCurrency(expense.amount)}</span></div>
