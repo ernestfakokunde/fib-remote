@@ -1,28 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { lazy, Suspense } from 'react';
+const SalesChartView = lazy(() => import('./SalesChartView.jsx'));
 import { useGlobalContext } from '../context/context';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
 
 const SalesChart = ({ startDate, endDate }) => {
   const { getSalesPerDay } = useGlobalContext();
@@ -62,78 +41,13 @@ const SalesChart = ({ startDate, endDate }) => {
     fetchData();
   }, [startDate, endDate]);
 
-  const chartData = {
-    labels,
-    datasets: [
-      {
-        label: 'Sales',
-        data: values,
-        borderColor: 'rgba(59,130,246,1)',
-        borderWidth: 3,
-        backgroundColor: (context) => {
-          const chart = context.chart;
-          const { ctx, chartArea } = chart;
-          if (!chartArea) return 'rgba(59,130,246,0.15)';
-          const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-          gradient.addColorStop(0, 'rgba(59,130,246,0.05)');
-          gradient.addColorStop(0.5, 'rgba(59,130,246,0.12)');
-          gradient.addColorStop(1, 'rgba(59,130,246,0.25)');
-          return gradient;
-        },
-        tension: 0.45,
-        cubicInterpolationMode: 'monotone',
-        fill: true,
-        pointRadius: 6,
-        pointBackgroundColor: 'rgba(59,130,246,1)',
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointHoverRadius: 8,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      title: { display: false },
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            const v = context.parsed.y || 0;
-            return 'NGN ' + Number(v).toLocaleString();
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: '#6b7280' },
-      },
-      y: {
-        beginAtZero: true,
-        grid: { color: 'rgba(15,23,42,0.05)' },
-        ticks: {
-          callback: function(value) {
-            return 'NGN ' + Number(value).toLocaleString();
-          },
-          color: '#6b7280',
-        },
-      },
-    },
-  };
-
   return (
     <div className="glass-panel flex h-[300px] min-w-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/10 p-3 shadow-xl sm:h-[340px] sm:rounded-[1.6rem] sm:p-4">
       <h3 className="mb-3 text-lg font-medium text-[var(--text)]">Sales Analytics</h3>
       {loading ? (
         <div className="py-8 text-center text-[var(--muted)]">Loading...</div>
       ) : (
-        <div className="min-w-0 flex-1">
-          <Line data={chartData} options={options} />
-        </div>
+        <Suspense fallback={<div className="min-w-0 flex-1 animate-pulse rounded-lg bg-[var(--surface)]"/>}><SalesChartView labels={labels} values={values} /></Suspense>
       )}
     </div>
   );

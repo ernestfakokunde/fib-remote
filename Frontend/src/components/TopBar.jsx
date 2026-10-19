@@ -31,8 +31,8 @@ const TopBar = () => {
   };
 
   return (
-    <header className='glass-panel relative z-[80] mb-4 flex w-full items-center justify-between border px-6 py-3 overflow-visible'>
-      <div className='flex items-center gap-4'>
+    <header className='relative z-[35] mb-6 flex w-full items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-4 py-3 sm:px-6 lg:px-8'>
+      <div className='flex items-center gap-2 sm:gap-3'>
         <button
           onClick={toggleSidebar}
           className='lg:hidden inline-flex items-center justify-center p-2 rounded-full hover:bg-[var(--surface)]'
@@ -40,12 +40,9 @@ const TopBar = () => {
           {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
         <div className='hidden lg:flex items-center gap-3'>
-          <div className='rounded-2xl bg-white/10 p-2 shadow-lg ring-1 ring-white/10'>
-            <img src={SpectraLogo} alt='Spectra' className='h-10 w-10 object-contain' />
-          </div>
+          <div className='rounded-xl bg-[var(--primary-soft)] p-2'><img src={SpectraLogo} alt='Spectra' className='h-7 w-7 object-contain' /></div>
           <div>
-            <p className='text-lg font-semibold tracking-wide text-[var(--text)]'>Spectra</p>
-            <p className='text-xs uppercase tracking-[0.32em] text-[var(--muted)]'>Inventory Hub</p>
+            <p className='text-sm font-semibold text-[var(--text)]'>Spectra Inventory</p>
           </div>
         </div>
       </div>
@@ -62,7 +59,7 @@ const TopBar = () => {
 
         <button
           onClick={toggleTheme}
-          className='inline-flex items-center justify-center p-2 rounded-full hover:bg-[var(--surface)]'
+          className='inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface)]'
           title={`Switch to ${theme === 'white' ? 'blue' : 'white'} mode`}
         >
           {theme === 'white' ? <Moon size={18} /> : <Sun size={18} />}
@@ -71,7 +68,7 @@ const TopBar = () => {
         <div className='relative z-[121]'>
           <button
             onClick={() => setAreNotificationsOpen((prev) => !prev)}
-            className='relative inline-flex items-center justify-center rounded-full p-2 hover:bg-[var(--surface)]'
+            className='relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--surface)]'
           >
             <Bell size={18} />
             {unreadCount > 0 && (
@@ -98,7 +95,7 @@ const TopBar = () => {
           </div>
           <button
             onClick={handleLogout}
-            className='text-xs sm:text-sm px-3 py-1.5 rounded-full border border-[var(--border)] hover:bg-[var(--surface)]'
+            className='text-xs sm:text-sm px-3 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--surface)]'
           >
             Sign out
           </button>
