@@ -6,12 +6,14 @@ export const getWorkspaceOwnerId = (user) => {
   return user._id || user.id || null;
 };
 
-export const getProductLimit = (plan) => {
-  if (plan === "free") return 20;
-  if (plan === "pro") return 100;
-  if (plan === "enterprise") return null;
-  return 20;
+export const PLAN_ENTITLEMENTS = {
+  free: { products: 20, team: 5, snapsPerDay: 0, introPriceUsd: 0, regularPriceUsd: 0 },
+  pro: { products: 150, team: 20, snapsPerDay: 50, introPriceUsd: 3.5, regularPriceUsd: 5 },
+  enterprise: { products: null, team: null, snapsPerDay: 50, introPriceUsd: 7, regularPriceUsd: 9 },
 };
+
+export const getPlanEntitlements = (plan) => PLAN_ENTITLEMENTS[plan] || PLAN_ENTITLEMENTS.free;
+export const getProductLimit = (plan) => getPlanEntitlements(plan).products;
 
 export const buildPermissions = (role) => {
   const normalizedRole = role === "admin" ? "manager" : role;

@@ -4,7 +4,8 @@ import User from "../models/userModel.js";
 import Sales from "../models/salesModel.js";
 import Purchase from "../models/purchaseModel.js";
 import mongoose from "mongoose";
-import { getProductLimit } from "../utils/accessScope.js";
+import { getProductLimit, getPlanEntitlements } from "../utils/accessScope.js";
+import SnapUsage from "../models/snapUsageModel.js";
 import {
   notifyLowStock,
   notifyOutOfStock,
@@ -12,25 +13,38 @@ import {
 } from "../services/notificationService.js";
 import { z } from "zod";
 import { isValidMoney, roundMoney } from "../utils/money.js";
+import { GoogleGenAI } from "@google/genai";
 
 const productImageResultSchema = z.object({
-  name: z.string().trim().min(1).max(160),
+  productName: z.string().trim().min(1).max(160),
+  brand: z.string().trim().max(100).nullable(),
   category: z.string().trim().max(100),
-  brand: z.string().trim().max(100),
-  description: z.string().trim().max(1000),
-  confidence: z.number().min(0).max(1),
+  netQuantityOrWeight: z.string().trim().max(80).nullable(),
+  estimatedPrice: z.number().nonnegative().nullable(),
+  description: z.string().trim().max(500),
+  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
 }).strict();
 
 const productImageResponseSchema = {
-  type: "OBJECT",
+  type: 'object',
   properties: {
-    name: { type: "STRING", description: "A concise, specific product name." },
-    category: { type: "STRING", description: "The likely product category, or an empty string if unclear." },
-    brand: { type: "STRING", description: "The visible brand, or an empty string if not identifiable." },
-    description: { type: "STRING", description: "A short description based only on visible details." },
-    confidence: { type: "NUMBER", description: "Confidence from 0 to 1." },
+    productName: { type: 'string', description: 'A concise, specific product name visible on the package.' },
+    brand: { anyOf: [{ type: 'string' }, { type: 'null' }], description: 'Visible brand, or null if not identifiable.' },
+    category: { type: 'string', description: 'Likely product category, or an empty string if unclear.' },
+    netQuantityOrWeight: { anyOf: [{ type: 'string' }, { type: 'null' }], description: 'Visible size/weight/volume such as 500g or 1L, or null if not shown.' },
+    estimatedPrice: { anyOf: [{ type: 'number' }, { type: 'null' }], description: 'Only a price visibly printed on the product; null if none is shown. Do not infer market price.' },
+    description: { type: 'string', description: 'Brief description based only on visible product details.' },
+    expiryDate: { anyOf: [{ type: 'string', format: 'date' }, { type: 'null' }], description: 'Visible expiry date in YYYY-MM-DD format, or null if not shown/readable.' },
   },
-  required: ["name", "category", "brand", "description", "confidence"],
+  required: ['productName', 'brand', 'category', 'netQuantityOrWeight', 'estimatedPrice', 'description', 'expiryDate'],
+  additionalProperties: false,
+};
+
+let geminiClient;
+const getGeminiClient = () => {
+  if (!process.env.GEMINI_API_KEY) return null;
+  if (!geminiClient) geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  return geminiClient;
 };
 
 export const analyzeProductImage = async (req, res) => {
@@ -43,72 +57,56 @@ export const analyzeProductImage = async (req, res) => {
   };
 
   try {
-    if (!process.env.GEMINI_API_KEY) {
+    const workspaceUser = await User.findById(req.workspaceOwnerId).select('subscriptionPlan subscriptionStatus subscriptionCurrentPeriodEnd');
+    const entitlement = getPlanEntitlements(workspaceUser?.subscriptionPlan);
+    const active = ['pro', 'enterprise'].includes(workspaceUser?.subscriptionPlan)
+      && workspaceUser?.subscriptionStatus === 'active'
+      && (!workspaceUser.subscriptionCurrentPeriodEnd || new Date(workspaceUser.subscriptionCurrentPeriodEnd) > new Date());
+    if (!active || !entitlement.snapsPerDay) return res.status(403).json({ success: false, message: 'Snap to add is available on active Pro and Enterprise plans.' });
+    const dayStart = new Date();
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const dailySnapCount = await SnapUsage.countDocuments({ workspaceOwner: req.workspaceOwnerId, createdAt: { $gte: dayStart } });
+    if (dailySnapCount >= entitlement.snapsPerDay) return res.status(429).json({ success: false, message: `You have reached today's ${entitlement.snapsPerDay} snap limit.`, snapsUsed: dailySnapCount, snapsLimit: entitlement.snapsPerDay });
+    const ai = getGeminiClient();
+    if (!ai) {
       logFailure("missing_api_key");
       return res.status(503).json({ success: false, message: "Image analysis is not configured right now. You can enter product details manually." });
     }
 
-    const timeoutSignal = AbortSignal.timeout(20_000);
+    // Count attempted Gemini calls too, so provider errors cannot be used to bypass the daily quota.
+    await SnapUsage.create({ workspaceOwner: req.workspaceOwnerId, user: req.user._id });
+
     let geminiResponse;
     try {
-      geminiResponse = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-        {
-          method: "POST",
-          signal: timeoutSignal,
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": process.env.GEMINI_API_KEY,
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: "Identify the product shown in this image. Return ONLY JSON matching the provided schema. Do not guess hidden details. Use an empty string when category, brand, or description cannot be determined. Confidence must be a number from 0 to 1." },
-                {
-                  inlineData: {
-                    mimeType: req.file.mimetype,
-                    data: req.file.buffer.toString("base64"),
-                  },
-                },
-              ],
-            }],
-            generationConfig: {
-              responseFormat: {
-                text: {
-                  mimeType: "application/json",
-                  schema: productImageResponseSchema,
-                },
-              },
-            },
+      let timeoutId;
+      try {
+        geminiResponse = await Promise.race([
+          ai.models.generateContent({
+            model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+            contents: [
+              'You catalogue retail products from photos. Read only details visible on the package. Never guess a brand, size, expiry date, or price; use null when absent or unclear. Return the requested structured JSON.',
+              { inlineData: { mimeType: req.file.mimetype, data: req.file.buffer.toString('base64') } },
+            ],
+            config: { responseMimeType: 'application/json', responseJsonSchema: productImageResponseSchema, temperature: 0.1 },
           }),
-        }
-      );
+          new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(Object.assign(new Error('Gemini request timed out'), { name: 'TimeoutError' })), 20_000);
+            timeoutId.unref?.();
+          }),
+        ]);
+      } finally {
+        clearTimeout(timeoutId);
+      }
     } catch (error) {
       if (error.name === "TimeoutError" || error.name === "AbortError") {
         logFailure("gemini_timeout");
         return res.status(504).json({ success: false, message: "Image analysis took too long. Please try again or enter product details manually." });
       }
-      logFailure("gemini_unavailable", { error: error.name });
+      logFailure("gemini_unavailable", { error: error.name, status: error.status || error.statusCode });
       return res.status(502).json({ success: false, message: "Image analysis is temporarily unavailable. Please try again or enter product details manually." });
     }
 
-    if (!geminiResponse.ok) {
-      logFailure("gemini_error", { status: geminiResponse.status });
-      return res.status(502).json({ success: false, message: "Image analysis is temporarily unavailable. Please try again or enter product details manually." });
-    }
-
-    let responseBody;
-    try {
-      responseBody = await geminiResponse.json();
-    } catch {
-      logFailure("invalid_gemini_response");
-      return res.status(502).json({ success: false, message: "Image analysis returned an unreadable result. Please enter product details manually." });
-    }
-
-    const generatedText = responseBody.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text || "")
-      .join("")
-      .trim();
+    const generatedText = geminiResponse.text?.trim();
     let parsed;
     try {
       if (!generatedText) throw new Error("Empty model response");
@@ -130,6 +128,8 @@ export const analyzeProductImage = async (req, res) => {
       success: true,
       data: {
         ...parsed,
+        name: parsed.productName,
+        brand: parsed.brand || '',
         category: matchedCategory?.name || parsed.category,
         categoryId: matchedCategory?._id?.toString() || null,
       },

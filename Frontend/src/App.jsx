@@ -22,6 +22,8 @@ const Premium = lazy(() => import('./pages/Premium.jsx'));
 const StaffAccounts = lazy(() => import('./pages/StaffAccounts.jsx'));
 const Register = lazy(() => import('./pages/Register.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin.jsx'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
 
 const App = () => {
   return (
@@ -29,8 +31,8 @@ const App = () => {
     <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false}/>
      <Routes>
           <Route path='/welcome' element={<Landing/>}/>
-          <Route path='/sales' element={<ProtectedRoute><Layout /></ProtectedRoute>}><Route index element={<Sales/>}/></Route>
-          <Route path='/' element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path='/sales' element={<ProtectedRoute allowedRoles={['manager','salesperson']} redirectTo='/admin'><Layout /></ProtectedRoute>}><Route index element={<Sales/>}/></Route>
+          <Route path='/' element={<ProtectedRoute allowedRoles={['manager','salesperson']} redirectTo='/admin'><Layout /></ProtectedRoute>}>
              <Route index element={<Dashboard/>}/>
              <Route path='/stock-in' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><StockIn/></ProtectedRoute>}/>
              <Route path='/stock-out' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><StockOut/></ProtectedRoute>}/>
@@ -43,6 +45,8 @@ const App = () => {
              <Route path='/settings' element={<ProtectedRoute allowedRoles={['manager']}><Settings/></ProtectedRoute>}/>
           </Route>
           <Route path='/register' element={<Register />} />
+          <Route path='/admin/login' element={<AdminLogin />} />
+          <Route path='/admin' element={<ProtectedRoute allowedRoles={['superadmin']} redirectTo='/' loginTo='/admin/login'><AdminDashboard /></ProtectedRoute>} />
           <Route path='/login' element={<Login />} />
          
      </Routes>

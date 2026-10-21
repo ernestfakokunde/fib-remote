@@ -73,10 +73,11 @@ export const GlobalProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const logout = useCallback(() => {
+    const isPlatformOwner = window.location.pathname.startsWith('/admin');
     localStorage.removeItem("token");
     delete API.defaults.headers.common['Authorization'];
     setUser(null);
-    navigate('/login');
+    navigate(isPlatformOwner ? '/admin/login' : '/login');
   }, [navigate]);
 
   //create reusable profile fetch functions
@@ -132,13 +133,17 @@ export const GlobalProvider = ({ children }) => {
       const res = await API.post('/users/login', formData);
       const { token: userToken } = res.data;
       
+      localStorage.removeItem("token");
+      delete API.defaults.headers.common['Authorization'];
       localStorage.setItem("token", userToken);
       API.defaults.headers.common['Authorization'] = `Bearer ${userToken}`;
-      
-      await fetchUserProfile();
+
+      // The login response already contains the authenticated profile. Use it
+      // directly so a profile refresh failure cannot strand a valid login.
+      setUser(res.data.user);
       toast.success("Login successful");
       setLoading(false);
-      navigate('/');
+      navigate(res.data?.user?.role === 'superadmin' ? '/admin' : '/');
 
     } catch (error) {
       setLoading(false);
@@ -174,7 +179,7 @@ export const GlobalProvider = ({ children }) => {
     const analyzeProductImage = (file) => {
       const body = new FormData();
       body.append('image', file);
-      return API.post('/products/analyze-image', body, { headers: { 'Content-Type': 'multipart/form-data' } });
+      return API.post('/products/snap-to-add', body, { headers: { 'Content-Type': 'multipart/form-data' } });
     };
     const deleteProduct = async (id) => {
       const res = await API.delete(`/products/${id}`);
@@ -194,6 +199,9 @@ export const GlobalProvider = ({ children }) => {
     const getMonthlyProfit = (params = {}) => API.get('/analytics/monthly-profit', { params });
     const getDashboardOverview = (params = {}) => API.get('/dashboard/overview', { params });
     const getReports = (params = {}) => API.get('/reports', { params });
+    const initializeSubscription = (plan) => API.post('/subscriptions/initialize', { plan });
+    const verifySubscription = (reference) => API.post('/subscriptions/verify', { reference });
+    const getAdminOverview = useCallback(() => API.get('/admin/overview'), []);
     // Purchases API
     const createPurchase = (data) => API.post('/purchases/addPurchase', data);
     const getPurchases = (params = {}) => API.get('/purchases/getAllPurchases', { params });
@@ -241,9 +249,11 @@ export const GlobalProvider = ({ children }) => {
   const permissions = user?.permissions || buildPermissionsFromRole(role) || defaultPermissions;
   const isAdmin = role === "manager";
   const isSalesperson = role === "salesperson";
+  const isSuperAdmin = Boolean(user?.isSuperAdmin);
 
   const value = {
     user,
+    isSuperAdmin,
     loading,
     role,
     isAdmin,
@@ -271,6 +281,9 @@ export const GlobalProvider = ({ children }) => {
     getMonthlyProfit,
     getDashboardOverview,
     getReports,
+    initializeSubscription,
+    verifySubscription,
+    getAdminOverview,
     // Expenses
     createExpense,
     getExpenses,

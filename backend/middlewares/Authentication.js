@@ -12,16 +12,31 @@ const getEffectiveRole = (user) => {
 
 export const Protect = async (req, res, next)=>{
   try {
-    let token;
-
-    if( req.headers.authorization && req.headers.authorization.startsWith("Bearer")){
-      token = req.headers.authorization.split(" ")[1];
+    const authorization = req.headers.authorization;
+    const token = authorization?.startsWith("Bearer ") ? authorization.slice(7).trim() : null;
+    if (!token) {
+      return res.status(401).json({ message: "Authentication token is missing. Please sign in again." });
+    }
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not configured.');
+      return res.status(500).json({ message: "Authentication is not configured on the server." });
     }
 
-    const decoded = jwt.verify(token , process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: "Your session has expired. Please sign in again." });
+      }
+      return res.status(401).json({ message: "Your session is invalid. Please sign in again." });
+    }
+
+    // `+field` is an inclusion projection and cannot be combined with excluding
+    // password. isSuperAdmin is selected by default, so only exclude the hash.
     req.user = await User.findById(decoded.id).select("-password")
     if (!req.user) {
-      return res.status(401).json({message:"Not authorized"})
+      return res.status(401).json({message:"Account for this session was not found. Please sign in again."})
     }
     req.user.role = getEffectiveRole(req.user);
     req.workspaceOwnerId = getWorkspaceOwnerId(req.user);
@@ -32,8 +47,8 @@ export const Protect = async (req, res, next)=>{
 
     next();
   } catch (error) {
-    console.error(error)
-    res.status(404).json({message:"Not authorized"})
+    console.error('Authentication lookup failed:', error);
+    res.status(500).json({message:"Could not verify your account. Check the server database connection."})
   }
 }
 

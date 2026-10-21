@@ -12,7 +12,7 @@ const getEffectiveRole = (user) => {
   return 'manager';
 };
 
-const ProtectedRoute = ({ children, allowedRoles = null, redirectTo = '/' }) => {
+const ProtectedRoute = ({ children, allowedRoles = null, redirectTo = '/', loginTo = '/login' }) => {
   const { user, loading } = useGlobalContext();
   const location = useLocation();
   const hasWarnedRef = useRef(false);
@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children, allowedRoles = null, redirectTo = '/' }) => 
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={loginTo} replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(role)) {

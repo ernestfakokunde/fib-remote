@@ -2,7 +2,7 @@ import User from '../models/userModel.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Products from '../models/productModel.js';
-import { buildPermissions, getProductLimit, getWorkspaceOwnerId } from '../utils/accessScope.js';
+import { buildPermissions, getProductLimit, getPlanEntitlements, getWorkspaceOwnerId } from '../utils/accessScope.js';
 import { randomBytes } from 'node:crypto';
 
 const generateToken = (id) =>
@@ -40,6 +40,11 @@ const buildProfilePayload = async (user) => {
 
   const subscriptionPlan = workspaceUser?.subscriptionPlan || user.subscriptionPlan || 'free';
   const productLimit = getProductLimit(subscriptionPlan);
+  const entitlements = getPlanEntitlements(subscriptionPlan);
+  const currentTeamCount = workspaceOwnerId ? await User.countDocuments({ ownerAdmin: workspaceOwnerId, role: 'salesperson' }) : 0;
+  const billingIsActive = ['pro', 'enterprise'].includes(subscriptionPlan)
+    && workspaceUser?.subscriptionStatus === 'active'
+    && (!workspaceUser.subscriptionCurrentPeriodEnd || new Date(workspaceUser.subscriptionCurrentPeriodEnd) > new Date());
   const remainingProducts = productLimit === null ? null : Math.max(productLimit - currentProductCount, 0);
   const permissions = buildPermissions(role);
 
@@ -55,6 +60,17 @@ const buildProfilePayload = async (user) => {
     currentProductCount,
     productLimit,
     remainingProducts,
+    subscriptionStatus: workspaceUser?.subscriptionStatus || 'free',
+    subscriptionCurrentPeriodEnd: workspaceUser?.subscriptionCurrentPeriodEnd || null,
+    subscriptionIntroEndsAt: workspaceUser?.subscriptionIntroEndsAt || null,
+    currentTeamCount,
+    teamLimit: entitlements.team,
+    snapsPerDayLimit: billingIsActive ? entitlements.snapsPerDay : 0,
+    prices: {
+      introductoryUsd: entitlements.introPriceUsd,
+      recurringUsd: entitlements.regularPriceUsd,
+      billingDays: 60,
+    },
     canCreateProduct: permissions.canCreateProduct && (productLimit === null || currentProductCount < productLimit),
     permissions,
   };
@@ -105,8 +121,9 @@ export const Login = async (req, res) => {
   try {
     const { email, password, accountType } = req.body;
 
-    if (accountType && !['manager', 'salesperson'].includes(accountType)) {
-      return res.status(400).json({ message: 'Account type is invalid' });
+    const normalizedAccountType = typeof accountType === 'string' ? accountType.trim().toLowerCase() : accountType;
+    if (normalizedAccountType && !['manager', 'salesperson', 'superadmin'].includes(normalizedAccountType)) {
+      return res.status(400).json({ message: `Account type is invalid: ${String(accountType)}` });
     }
 
     const identifier = email?.trim();
@@ -128,9 +145,14 @@ export const Login = async (req, res) => {
     }
 
     const role = getEffectiveRole(user);
-    if (accountType && accountType !== role) {
+    if (role === 'superadmin' && normalizedAccountType !== 'superadmin') {
+      return res.status(403).json({ message: 'Use the platform owner sign-in page.' });
+    }
+    if (normalizedAccountType && normalizedAccountType !== role) {
       return res.status(403).json({
-        message: role === 'manager'
+        message: role === 'superadmin'
+          ? 'This is a platform owner account. Use the platform owner sign-in page.'
+          : role === 'manager'
           ? 'This is a business owner account. Choose Business owner to sign in.'
           : 'This is a team member account. Choose Team member to sign in.',
       });
@@ -141,7 +163,7 @@ export const Login = async (req, res) => {
     res.json({
       message: 'Login Successfully',
       token,
-      user: await buildProfilePayload(user),
+      user: { ...(await buildProfilePayload(user)), isSuperAdmin: role === 'superadmin' && Boolean(user.isSuperAdmin) },
     });
   } catch (error) {
     console.error(error.message);
@@ -156,6 +178,12 @@ export const createSalesperson = async (req, res) => {
     }
 
     const { username, email } = req.body;
+    const manager = await User.findById(req.user._id);
+    const { team: teamLimit } = getPlanEntitlements(manager?.subscriptionPlan);
+    const currentTeamCount = await User.countDocuments({ ownerAdmin: req.user._id, role: 'salesperson' });
+    if (teamLimit !== null && currentTeamCount >= teamLimit) {
+      return res.status(403).json({ message: `Your ${manager?.subscriptionPlan || 'free'} plan allows up to ${teamLimit} team members. Upgrade to add more.`, currentTeamCount, teamLimit });
+    }
     if (typeof username !== 'string' || typeof email !== 'string' || !username.trim() || !email.trim()) {
       return res.status(400).json({ message: 'Username and email are required' });
     }
@@ -187,7 +215,7 @@ export const createSalesperson = async (req, res) => {
       role: 'salesperson',
       isAdmin: false,
       ownerAdmin: req.user._id,
-      subscriptionPlan: req.user.subscriptionPlan,
+      subscriptionPlan: manager.subscriptionPlan,
     });
 
     res.status(201).json({
@@ -234,7 +262,7 @@ export const getProfile = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(await buildProfilePayload(req.user));
+    res.json({ ...(await buildProfilePayload(req.user)), isSuperAdmin: req.user.role === 'superadmin' && Boolean(req.user.isSuperAdmin) });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ message: 'Server Error getting profile' });
@@ -263,7 +291,7 @@ export const updateProfile = async (req, res) => {
 
     return res.json({
       message: 'Profile updated successfully',
-      user: await buildProfilePayload(user),
+      user: { ...(await buildProfilePayload(user)), isSuperAdmin: user.role === 'superadmin' && Boolean(user.isSuperAdmin) },
     });
   } catch (error) {
     console.error('Update profile error:', error);

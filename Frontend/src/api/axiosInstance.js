@@ -2,7 +2,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 
 const API = axios.create({
-  baseURL: "https://spectra-ki82.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://spectra-ki82.onrender.com/api",
   headers: {
     'Content-Type': 'application/json'
   }

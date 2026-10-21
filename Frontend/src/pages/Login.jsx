@@ -19,7 +19,7 @@ export default function Login() {
     catch { /* The auth context displays the API error. */ }
   };
 
-  return <AuthShell title="Welcome back" subtitle="Sign in to pick up where you left off." footer={<>New to Spectra? <Link to="/register" className="ml-1 font-semibold text-[var(--primary)] hover:underline">Create an account</Link></>}>
+  return <AuthShell title="Welcome back" subtitle="Sign in to pick up where you left off." footer={<>New to Spectra? <Link to="/register" className="ml-1 font-semibold text-[var(--primary)] hover:underline">Create an account</Link><span className="mx-2 text-[var(--muted)]">·</span><Link to="/admin/login" className="font-semibold text-[var(--primary)] hover:underline">Platform owner</Link></>}>
     <div className="mb-6 grid grid-cols-2 rounded-xl bg-[var(--surface)] p-1" role="group" aria-label="Account type"><button type="button" onClick={()=>setLoginMode('manager')} aria-pressed={loginMode==='manager'} className={`h-10 rounded-lg text-sm font-semibold transition ${loginMode==='manager'?'bg-[var(--card)] text-[var(--text)] shadow-sm':'text-[var(--muted)]'}`}>Business owner</button><button type="button" onClick={()=>setLoginMode('salesperson')} aria-pressed={loginMode==='salesperson'} className={`h-10 rounded-lg text-sm font-semibold transition ${loginMode==='salesperson'?'bg-[var(--card)] text-[var(--text)] shadow-sm':'text-[var(--muted)]'}`}>Team member</button></div>
     <p className="-mt-2 mb-5 text-xs text-[var(--muted)]">{loginMode==='manager'?'Use your business account credentials.':'Use the account credentials provided by your manager.'}</p>
     <form onSubmit={handleSubmit} className="space-y-5">

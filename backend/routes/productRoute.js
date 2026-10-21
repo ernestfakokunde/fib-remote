@@ -21,6 +21,14 @@ router.post(
   uploadProductImage,
   analyzeProductImage
 );
+router.post(
+  "/snap-to-add",
+  Protect,
+  requireRoles("manager", "salesperson"),
+  productImageRateLimit,
+  uploadProductImage,
+  analyzeProductImage
+);
 router.get("/", Protect, getAllProducts);
 router.get("/:id", Protect, getSingleProduct);
 router.delete("/:id", Protect, requireRoles("manager"), deleteProduct);

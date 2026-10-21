@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import SalesChart from '../components/SalesChart';
 import ExpensesByCategory from '../components/ExpensesByCategory';
 import MonthlyProfitChart from '../components/MonthlyProfitChart';
@@ -91,9 +91,9 @@ const Reports = () => {
     setAppliedRange(range);
   };
 
-  const exportReport = () => {
+  const buildExportRows = () => {
     const range = appliedRange;
-    downloadCsv('spectra-report.csv', ['Section', 'Metric', 'Value'], [
+    return [
       ['Period', 'Start date', range.start],
       ['Period', 'End date', range.end],
       ['Summary', 'Total revenue (NGN)', summary.totalRevenue.toFixed(2)],
@@ -102,7 +102,17 @@ const Reports = () => {
       ['Summary', 'Net profit (NGN)', summary.netProfit.toFixed(2)],
       ...best.map((item) => ['Best-selling products', item.name || 'Unknown', `${finiteNumber(item.quantitySold)} units; NGN ${finiteNumber(item.revenue).toFixed(2)}`]),
       ...slow.map((item) => ['Slow-selling products', item.name || 'Unknown', `${finiteNumber(item.quantitySold)} units sold`]),
-    ]);
+    ];
+  };
+
+  const exportCsv = () => downloadCsv('spectra-report.csv', ['Section', 'Metric', 'Value'], buildExportRows());
+  const exportPdf = () => {
+    const rows = buildExportRows();
+    const reportRows = rows.map((row) => `<tr>${row.map((cell) => `<td>${String(cell).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}</td>`).join('')}</tr>`).join('');
+    const popup = window.open('', '_blank', 'noopener,noreferrer,width=900,height=700');
+    if (!popup) return;
+    popup.document.write(`<!doctype html><html><head><title>Spectra report</title><style>body{font:14px Arial,sans-serif;color:#172033;margin:40px}h1{margin-bottom:4px}p{color:#64748b;margin-top:0}table{border-collapse:collapse;width:100%;margin-top:28px}th,td{border:1px solid #dbe2ea;padding:9px;text-align:left}th{background:#f1f5f9}tr:nth-child(even){background:#f8fafc}</style></head><body><h1>Spectra Inventory Report</h1><p>${appliedRange.start} — ${appliedRange.end} · Generated ${new Date().toLocaleDateString()}</p><table><thead><tr><th>Section</th><th>Metric</th><th>Value</th></tr></thead><tbody>${reportRows}</tbody></table><script>window.onload=()=>window.print()<\/script></body></html>`);
+    popup.document.close();
   };
 
   const selectedRange = appliedRange;
@@ -115,9 +125,7 @@ const Reports = () => {
           <h1 className="app-page-title text-[var(--text)]">Reports</h1>
           <p className="app-page-copy mt-2">A clear view of revenue, gross profit, and expenses for your selected period.</p>
         </div>
-        <button onClick={exportReport} disabled={loading} className="mobile-action inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50 sm:w-auto">
-          <Download size={16} /> Export CSV
-        </button>
+        <div className="flex flex-wrap gap-2"><button onClick={exportCsv} disabled={loading} className="mobile-action inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50 sm:w-auto"><FileSpreadsheet size={16} /> Export CSV</button><button onClick={exportPdf} disabled={loading} className="mobile-action inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm font-semibold text-[var(--text)] transition hover:border-[var(--primary)] disabled:opacity-50 sm:w-auto"><FileText size={16} /> Save PDF</button></div>
       </header>
 
       <section className="app-card p-4 sm:p-5" aria-label="Report date range">

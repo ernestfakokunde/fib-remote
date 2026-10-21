@@ -12,6 +12,10 @@ import expenseRoutes from './routes/expenseRoute.js';
 import dashboardRoutes from './routes/dashboardRoute.js'
 import reportRoutes from './routes/reportRoute.js';
 import notificationRoutes from './routes/notificationRoute.js';
+import adminRoutes from './routes/adminRoute.js';
+import subscriptionRoutes from './routes/subscriptionRoute.js';
+import { paystackWebhook, renewSubscriptions } from './controllers/subscriptionController.js';
+import { validatePaystackSignature } from './services/paystackService.js';
 
 //load environent variables
 dotenv.config();
@@ -48,8 +52,25 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.post('/api/payments/paystack/webhook', express.raw({ type: 'application/json', limit: '100kb' }), async (req, res, next) => {
+  try {
+    const valid = await validatePaystackSignature(req.body, req.headers['x-paystack-signature']);
+    if (!valid) return res.status(401).json({ message: 'Invalid Paystack signature.' });
+    req.body = JSON.parse(req.body.toString('utf8'));
+    return paystackWebhook(req, res, next);
+  } catch (error) {
+    if (error instanceof SyntaxError) return res.status(400).json({ message: 'Invalid webhook payload.' });
+    console.error('Paystack webhook handler failed:', error.message);
+    return res.status(500).json({ message: 'Webhook processing failed.' });
+  }
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+setInterval(() => {
+  void renewSubscriptions().catch((error) => console.error('Subscription renewal sweep failed:', error.message));
+}, 60 * 60 * 1000).unref();
+void renewSubscriptions().catch((error) => console.error('Initial subscription renewal sweep failed:', error.message));
 
 //Error handling for middleware 
 app.use((err, req, res, next) => {
@@ -78,6 +99,8 @@ app.use("/api/expenses", expenseRoutes);
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/reports", reportRoutes)
 app.use("/api/notifications", notificationRoutes)
+app.use("/api/subscriptions", subscriptionRoutes)
+app.use("/api/admin", adminRoutes)
 
 app.get('/', (req, res) => {
    console.log("App is running")
@@ -95,6 +118,8 @@ app.get('/', (req, res) => {
       '/api/reports',
       '/api/analytics',
       '/api/notifications',
+      '/api/subscriptions',
+      '/api/admin',
       '/health'
     ],
     documentation: 'Add your API docs link here',
@@ -108,4 +133,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, ()=>{
   console.log(`Server is running on port ${PORT}`);
 })
- 

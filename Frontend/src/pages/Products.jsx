@@ -56,12 +56,13 @@ export default function Products() {
   const [analyzingImage, setAnalyzingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
 
-  const { getProducts, createProduct, deleteProduct, getCategories, createCategory, analyzeProductImage, permissions, isSalesperson } = useGlobalContext();
+  const { getProducts, createProduct, deleteProduct, getCategories, createCategory, analyzeProductImage, permissions, isSalesperson, user } = useGlobalContext();
 
   const handleImageAnalysis = async (file) => {
     if (!file) return;
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 8 * 1024 * 1024) {
-      toast.error('Choose a JPG, PNG, or WebP image under 8 MB.');
+    if (!user?.snapsPerDayLimit) { toast.info('Snap to add is available on active Pro and Enterprise plans.'); return; }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      toast.error('Choose a JPG, PNG, or WebP image under 5 MB.');
       return;
     }
     setImagePreview(URL.createObjectURL(file));
@@ -69,7 +70,7 @@ export default function Products() {
     try {
       const { data } = await analyzeProductImage(file);
       const details = data.data || data.product || data;
-      setProductForm((form) => ({ ...form, name: details.name || form.name, description: details.description || form.description, ...(details.category ? { category: categories.find((item) => item.name?.toLowerCase() === details.category.toLowerCase())?._id || form.category } : {}) }));
+      setProductForm((form) => ({ ...form, name: details.name || details.productName || form.name, description: details.description || form.description, ...(details.category ? { category: categories.find((item) => item.name?.toLowerCase() === details.category.toLowerCase())?._id || form.category } : {}) }));
       toast.success('Product details added. Review and complete the form.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Image analysis is unavailable. You can enter product details manually.');

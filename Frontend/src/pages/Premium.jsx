@@ -1,36 +1,65 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Check, Crown, Package, Sparkles, Star } from 'lucide-react';
 import { useGlobalContext } from '../context/context';
+import { toast } from 'react-toastify';
 
 const plans = [
   {
     name: 'Free',
     limit: '20 products',
     description: 'Good for getting started with lightweight inventory tracking.',
-    perks: ['Basic inventory access', 'Product cap for small shops', 'Manual growth path'],
+    perks: ['Up to 5 team members', 'Basic inventory access', 'Manual product entry'],
+    price: 'Free',
   },
   {
     name: 'Pro',
-    limit: '100 products',
+    limit: '150 products',
     description: 'Built for growing teams that need more catalog room and fewer limits.',
-    perks: ['Expanded product capacity', 'Better room for scaling', 'Upgrade-friendly workflow'],
+    perks: ['Up to 20 team members', '50 product snaps per day', 'Billed every 2 months'],
+    price: '$3.50 for 2 months, then $5 every 2 months',
     featured: true,
   },
   {
     name: 'Enterprise',
     limit: 'Unlimited products',
     description: 'For bigger operations that want breathing room and no practical ceiling.',
-    perks: ['Unlimited product slots', 'Best fit for large inventory', 'Flexible long-term growth'],
+    perks: ['Unlimited team members', '50 product snaps per day', 'Billed every 2 months'],
+    price: '$7 for 2 months, then $9 every 2 months',
   },
 ];
 
 const Premium = () => {
-  const { user, permissions, isSalesperson } = useGlobalContext();
+  const { user, permissions, isSalesperson, initializeSubscription, verifySubscription, fetchUserProfile } = useGlobalContext();
+  const [searchParams] = useSearchParams();
 
   const currentPlan = user?.subscriptionPlan || 'free';
   const currentCount = user?.currentProductCount ?? 0;
   const limit = user?.productLimit;
+
+  useEffect(() => {
+    if (searchParams.get('payment') !== 'complete') return;
+    const reference = searchParams.get('reference') || searchParams.get('trxref');
+    if (!reference) return;
+    verifySubscription(reference).then(async () => { await fetchUserProfile(); toast.success('Subscription activated.'); }).catch(() => {}).finally(() => window.history.replaceState({}, '', '/premium'));
+  }, [fetchUserProfile, searchParams, verifySubscription]);
+
+  const beginCheckout = async (plan) => {
+    try {
+      const { data } = await initializeSubscription(plan);
+      if (data.alreadyPaid || !data.authorizationUrl) {
+        if (data.reference && !data.alreadyPaid) {
+          await verifySubscription(data.reference);
+          await fetchUserProfile();
+          toast.success('Subscription activated.');
+        }
+        return;
+      }
+      window.location.assign(data.authorizationUrl);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Could not begin checkout.');
+    }
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -110,7 +139,7 @@ const Premium = () => {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">{plan.name} Plan</p>
-                  <h2 className="mt-3 text-2xl font-semibold text-[var(--text)]">{plan.limit}</h2>
+                <h2 className="mt-3 text-2xl font-semibold text-[var(--text)]">{plan.price || plan.limit}</h2>
                 </div>
                 {plan.featured ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-cyan-300/15 px-3 py-1 text-xs font-medium text-cyan-100">
@@ -120,7 +149,7 @@ const Premium = () => {
                 ) : null}
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-[var(--muted)]">{plan.description}</p>
+              <p className="mt-4 text-sm leading-6 text-[var(--muted)]">{plan.description} · {plan.limit}</p>
 
               <div className="mt-5 space-y-3">
                 {plan.perks.map((perk) => (
@@ -140,7 +169,7 @@ const Premium = () => {
                   </div>
                 ) : (
                   permissions.canManagePremium ? (
-                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--primary)] px-4 py-3 text-sm font-medium text-white shadow-lg shadow-sky-500/20 transition hover:opacity-90">
+                    <button onClick={() => beginCheckout(plan.name.toLowerCase())} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--primary)] px-4 py-3 text-sm font-medium text-white shadow-lg shadow-sky-500/20 transition hover:opacity-90">
                       Choose {plan.name}
                       <ArrowRight size={16} />
                     </button>
@@ -165,8 +194,7 @@ const Premium = () => {
               Let your catalog grow without friction.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
-              Start with a clean premium CTA now, then connect this button to your billing or manager plan-change
-              flow when you are ready.
+              Paid plans are charged every 60 days through Paystack. Your first billing period uses the introductory price.
             </p>
           </div>
 

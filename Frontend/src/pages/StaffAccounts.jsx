@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context';
 
 const StaffAccounts = () => {
-  const { createSalesperson, getSalespeople } = useGlobalContext();
+  const { createSalesperson, getSalespeople, user } = useGlobalContext();
   const [salespeople, setSalespeople] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -86,7 +86,7 @@ const StaffAccounts = () => {
             </p>
           </div>
           <div className="rounded-full border border-white/10 bg-white/10 px-5 py-3 text-sm text-[var(--text)]">
-            Manager-only staff management
+            Team members: {user?.currentTeamCount ?? 0} / {user?.teamLimit ?? 'Unlimited'}
           </div>
         </div>
       </section>
@@ -126,10 +126,10 @@ const StaffAccounts = () => {
             </div>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || (user?.teamLimit !== null && user?.teamLimit !== undefined && user.currentTeamCount >= user.teamLimit)}
               className="rounded-full bg-[var(--primary)] px-5 py-3 text-sm font-medium text-white shadow-lg shadow-sky-500/20 disabled:opacity-60"
             >
-              {saving ? 'Creating...' : 'Create Salesperson'}
+              {saving ? 'Creating...' : (user?.teamLimit !== null && user?.teamLimit !== undefined && user.currentTeamCount >= user.teamLimit ? 'Team limit reached' : 'Create Salesperson')}
             </button>
           </form>
         </section>
