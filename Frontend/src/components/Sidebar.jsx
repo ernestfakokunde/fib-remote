@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Package, ArrowDownToLine, ArrowUpFromLine, CircleDollarSign, ChartNoAxesCombined, ReceiptText, UserRound, Users, Settings, Zap } from 'lucide-react';
+import { LayoutDashboard, Package, ArrowDownToLine, ArrowUpFromLine, CircleDollarSign, ChartNoAxesCombined, ReceiptText, UserRound, Users, Settings, Zap, Boxes } from 'lucide-react';
 import { useGlobalContext } from '../context/context';
 import BrandLogo from './BrandLogo';
 
@@ -12,6 +12,7 @@ const Sidebar = () => {
       { to: '/products', label: 'Products', Icon: Package },
       { to: '/stock-in', label: 'Stock in', Icon: ArrowDownToLine },
       { to: '/stock-out', label: 'Stock out', Icon: ArrowUpFromLine },
+      ...(permissions.canManageProducts ? [{ to: '/inventory-operations', label: 'Stock controls', Icon: Boxes }] : []),
     ] },
     { title: 'Finance', links: [
       { to: '/sales', label: 'Sales', Icon: CircleDollarSign },

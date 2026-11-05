@@ -16,8 +16,9 @@ export const createCategory = async (req, res) => {
 
     const normalizedName = name.trim();
 
+    const escapedName = normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const existing = await Category.findOne({
-      name: { $regex: `^${normalizedName}$`, $options: "i" },
+      name: { $regex: `^${escapedName}$`, $options: "i" },
       createdBy: userId,
     });
     if (existing) {
@@ -34,7 +35,7 @@ export const createCategory = async (req, res) => {
     const saved = await category.save();
     res.status(201).json({ message: "Category created", category: saved });
   } catch (error) {
-    if (error.code === 11000) {
+    if (error.code === 11000 && (error.keyPattern?.name || error.keyValue?.name)) {
       return res.status(409).json({ message: "Category name already exists" });
     }
     console.error(error);
@@ -91,10 +92,11 @@ export const updateCategory = async (req, res) => {
     if (color) updates.color = color;
 
     if (updates.name) {
+      const escapedName = updates.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const existing = await Category.findOne({
         _id: { $ne: id },
         createdBy: userId,
-        name: { $regex: `^${updates.name}$`, $options: "i" },
+        name: { $regex: `^${escapedName}$`, $options: "i" },
       });
       if (existing) {
         return res.status(409).json({ message: "Category name already exists" });

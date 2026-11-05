@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Copy, KeyRound, ShieldPlus, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useGlobalContext } from '../context/context';
@@ -14,7 +14,7 @@ const StaffAccounts = () => {
     email: '',
   });
 
-  const fetchSalespeople = async () => {
+  const fetchSalespeople = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getSalespeople();
@@ -25,11 +25,11 @@ const StaffAccounts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getSalespeople]);
 
   useEffect(() => {
     fetchSalespeople();
-  }, []);
+  }, [fetchSalespeople]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

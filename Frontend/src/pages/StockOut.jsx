@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { formatCurrency, formatNumber, localDateBoundary, localDateString } from '../utils/format';
 import { downloadCsv } from '../utils/csv';
 import { Button, EmptyState, Skeleton } from '../components/ui';
+import API from '../api/axiosInstance';
 
 const filterButtonClass = (active) =>
   `min-h-10 rounded-lg px-3 py-2 text-sm font-medium transition ${
@@ -21,13 +22,14 @@ const StockOut = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [products, setProducts] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [limit] = useState(10);
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
   const [filterMode, setFilterMode] = useState('all');
-  const [form, setForm] = useState({ productId: '', quantity: 1, sellingPrice: '', date: '', customer: '' });
+  const [form, setForm] = useState({ productId: '', variantId: '', locationId: '', quantity: 1, sellingPrice: '', date: '', customer: '' });
   const [isSaving, setIsSaving] = useState(false);
   const [totals, setTotals] = useState({ totalRevenue: 0, totalProfit: 0, totalSales: 0 });
 
@@ -81,6 +83,9 @@ const StockOut = () => {
     try {
       const res = await getProducts({ limit: 100 });
       setProducts(Array.isArray(res.data?.products) ? res.data.products : []);
+      const locationResponse = await API.get('/inventory/locations');
+      setLocations(locationResponse.data?.locations || []);
+      setForm((current) => ({ ...current, locationId: current.locationId || locationResponse.data?.defaultLocation || '' }));
     } catch (err) {
       console.error(err);
     }
@@ -95,7 +100,7 @@ const StockOut = () => {
   }, [endDateFilter, fetchSales, filterMode, page, startDateFilter]);
 
   const openModal = () => {
-    setForm({ productId: '', quantity: 1, sellingPrice: '', date: '', customer: '' });
+    setForm({ productId: '', variantId: '', locationId: locations.find((location) => location.isDefault)?._id || locations[0]?._id || '', quantity: 1, sellingPrice: '', date: '', customer: '' });
     setShowModal(true);
   };
 
@@ -109,6 +114,8 @@ const StockOut = () => {
     try {
       await createSale({
         productId: form.productId,
+        variantId: form.variantId || undefined,
+        locationId: form.locationId || undefined,
         quantity: form.quantity,
         sellingPrice: form.sellingPrice,
         date: form.date || undefined,
@@ -206,7 +213,7 @@ const StockOut = () => {
                   <label className="mb-1 block text-sm text-[var(--muted)]">Product</label>
                   <select required className="theme-input app-control px-3" value={form.productId} onChange={(e) => {
                     const pid = e.target.value;
-                    setForm((f) => ({ ...f, productId: pid }));
+                    setForm((f) => ({ ...f, productId: pid, variantId: '' }));
                     const product = products.find((x) => x._id === pid);
                     if (product) setForm((f) => ({ ...f, sellingPrice: product.sellingPrice }));
                   }}>
@@ -214,6 +221,8 @@ const StockOut = () => {
                     {products.map((p) => <option key={p._id} value={p._id}>{p.name} - {p.quantity} available</option>)}
                   </select>
                 </div>
+                {products.find((product) => product._id === form.productId)?.variants?.length ? <div><label className="mb-1 block text-sm text-[var(--muted)]">Variant / unit</label><select className="theme-input app-control px-3" value={form.variantId} onChange={(event) => { const variantId = event.target.value; const product = products.find((item) => item._id === form.productId); const variant = product?.variants?.find((item) => item._id === variantId); setForm((current) => ({ ...current, variantId, sellingPrice: variant?.sellingPrice ?? Number(product?.sellingPrice || 0) * Number(variant?.conversionToBase || 1) })); }}><option value="">Base product ({products.find((product) => product._id === form.productId)?.baseUnit || 'unit'})</option>{products.find((product) => product._id === form.productId).variants.map((variant) => <option key={variant._id} value={variant._id}>{variant.name} · {variant.sku} ({variant.unit || 'unit'})</option>)}</select><p className="mt-1 text-xs text-[var(--muted)]">Variant stock uses {products.find((product) => product._id === form.productId).baseUnit || 'base units'} for conversion.</p></div> : null}
+                <div><label className="mb-1 block text-sm text-[var(--muted)]">Location</label><select className="theme-input app-control px-3" value={form.locationId} onChange={(event) => setForm((current) => ({ ...current, locationId: event.target.value }))}>{locations.map((location) => <option key={location._id} value={location._id}>{location.name}</option>)}</select></div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="mb-1 block text-sm text-[var(--muted)]">Quantity</label>

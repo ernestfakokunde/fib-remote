@@ -4,6 +4,7 @@ import {
   getSingleProduct,
   getAllProducts,
   deleteProduct,
+  updateProduct,
   analyzeProductImage,
 } from "../controllers/productController.js";
 import { Protect, requireRoles } from "../middlewares/Authentication.js";
@@ -31,6 +32,7 @@ router.post(
 );
 router.get("/", Protect, getAllProducts);
 router.get("/:id", Protect, getSingleProduct);
+router.patch("/:id", Protect, requireRoles("manager"), updateProduct);
 router.delete("/:id", Protect, requireRoles("manager"), deleteProduct);
 
 export default router;

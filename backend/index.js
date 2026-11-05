@@ -14,6 +14,7 @@ import reportRoutes from './routes/reportRoute.js';
 import notificationRoutes from './routes/notificationRoute.js';
 import adminRoutes from './routes/adminRoute.js';
 import subscriptionRoutes from './routes/subscriptionRoute.js';
+import inventoryRoutes from './routes/inventoryRoute.js';
 import { paystackWebhook, renewSubscriptions } from './controllers/subscriptionController.js';
 import { validatePaystackSignature } from './services/paystackService.js';
 
@@ -21,7 +22,7 @@ import { validatePaystackSignature } from './services/paystackService.js';
 dotenv.config();
 
 //connect to databse 
-connectDB();
+await connectDB();
 
 //initialize express app
 const app = express();
@@ -95,6 +96,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/sales", salesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/purchases", purchaseRoutes);
+app.use("/api/inventory", inventoryRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/reports", reportRoutes)

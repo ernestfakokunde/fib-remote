@@ -1,0 +1,20 @@
+import express from "express";
+import { Protect, requireRoles } from "../middlewares/Authentication.js";
+import { createLocation, listLocations, listBalances, adjustStock, transferStock, listMovements, listSuppliers, createSupplier, recordSupplierPayment, listPurchaseOrders, createPurchaseOrder, updatePurchaseOrderStatus, receivePurchaseOrder } from "../controllers/inventoryController.js";
+
+const router = express.Router();
+router.use(Protect);
+router.get("/locations", listLocations);
+router.post("/locations", requireRoles("manager"), createLocation);
+router.get("/balances", listBalances);
+router.get("/movements", listMovements);
+router.post("/adjustments", requireRoles("manager"), adjustStock);
+router.post("/transfers", requireRoles("manager"), transferStock);
+router.get("/suppliers", requireRoles("manager"), listSuppliers);
+router.post("/suppliers", requireRoles("manager"), createSupplier);
+router.post("/suppliers/:supplierId/payments", requireRoles("manager"), recordSupplierPayment);
+router.get("/purchase-orders", requireRoles("manager"), listPurchaseOrders);
+router.post("/purchase-orders", requireRoles("manager"), createPurchaseOrder);
+router.patch("/purchase-orders/:id/status", requireRoles("manager"), updatePurchaseOrderStatus);
+router.post("/purchase-orders/:id/receipts", receivePurchaseOrder);
+export default router;

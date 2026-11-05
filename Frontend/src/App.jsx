@@ -23,6 +23,7 @@ const StaffAccounts = lazy(() => import('./pages/StaffAccounts.jsx'));
 const Register = lazy(() => import('./pages/Register.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
+const InventoryOperations = lazy(() => import('./pages/InventoryOperations.jsx'));
 
 const App = () => {
   return (
@@ -38,6 +39,7 @@ const App = () => {
              <Route path='/stock-out' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><StockOut/></ProtectedRoute>}/>
              <Route path='/expenses' element={<ProtectedRoute allowedRoles={['manager']}><Expenses/></ProtectedRoute>}/>
              <Route path='/products' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Products/></ProtectedRoute>}/>
+             <Route path='/inventory-operations' element={<ProtectedRoute allowedRoles={['manager']}><InventoryOperations/></ProtectedRoute>}/>
              <Route path='/reports' element={<ProtectedRoute allowedRoles={['manager']}><Reports/></ProtectedRoute>}/>
              <Route path='/profile' element={<ProtectedRoute allowedRoles={['manager','salesperson']}><Profile/></ProtectedRoute>}/>
              <Route path='/premium' element={<ProtectedRoute allowedRoles={['manager']}><Premium/></ProtectedRoute>}/>

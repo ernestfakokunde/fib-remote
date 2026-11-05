@@ -5,10 +5,11 @@ import mongoose from "mongoose";
 import { notifyStockIn, notifyLowStock, notifyOutOfStock } from "../services/notificationService.js";
 import { isPositiveWholeQuantity, isValidMoney, roundMoney } from "../utils/money.js";
 import { buildDateRange } from "../utils/dateRange.js";
+import { postMovement } from "../services/inventoryService.js";
 
 export const createPurchase = async (req, res) => {
   try {
-    const { productId, quantity, costPrice, supplier, date } = req.body;
+    const { productId, locationId, quantity, costPrice, supplier, date } = req.body;
     const workspaceOwnerId = req.workspaceOwnerId;
 
     if (!productId || quantity === undefined || costPrice === undefined) {
@@ -55,23 +56,23 @@ export const createPurchase = async (req, res) => {
       recordedBy: req.user._id,
     });
 
-    const updatedProduct = await Products.findOneAndUpdate(
-      { _id: productId, createdBy: workspaceOwnerId, quantity: { $lte: Number.MAX_SAFE_INTEGER - parsedQuantity } },
-      { $inc: { quantity: parsedQuantity } },
-      { new: true }
-    );
-    if (!updatedProduct) {
-      const exists = await Products.exists({ _id: productId, createdBy: workspaceOwnerId });
-      return exists
-        ? res.status(400).json({ message: "Purchase would exceed the supported stock quantity" })
-        : res.status(404).json({ message: "Product not found" });
+    let movementResult;
+    try {
+      movementResult = await postMovement({ productId, locationId: locationId || null, workspaceId: workspaceOwnerId, actorId: req.user._id, delta: parsedQuantity, type: "purchase", reason: "Received stock", referenceType: "purchase" });
+    } catch (error) {
+      return res.status(error.message === "Product not found" ? 404 : 400).json({ message: error.message });
     }
+    const updatedProduct = movementResult.product;
+    newPurchase.locationId = movementResult.location._id;
 
     let savedPurchase;
     try {
       savedPurchase = await newPurchase.save();
     } catch (error) {
       await Products.updateOne({ _id: productId, createdBy: workspaceOwnerId }, { $inc: { quantity: -parsedQuantity } });
+      await import("../models/stockBalanceModel.js").then(({ default: StockBalance }) => StockBalance.updateOne({ product: productId, createdBy: workspaceOwnerId, location: movementResult.location._id, variantId: null }, { $inc: { quantity: -parsedQuantity } }));
+      const { default: StockMovement } = await import("../models/stockMovementModel.js");
+      await StockMovement.create({ product: productId, location: movementResult.location._id, quantityDelta: -parsedQuantity, type: "adjustment", reason: "Compensation for failed purchase record", actor: req.user._id, createdBy: workspaceOwnerId });
       throw error;
     }
     res.status(201).json({

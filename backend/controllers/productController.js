@@ -14,6 +14,9 @@ import {
 import { z } from "zod";
 import { isValidMoney, roundMoney } from "../utils/money.js";
 import { GoogleGenAI } from "@google/genai";
+import StockMovement from "../models/stockMovementModel.js";
+import PurchaseOrder from "../models/purchaseOrderModel.js";
+import { postMovement } from "../services/inventoryService.js";
 
 const productImageResultSchema = z.object({
   productName: z.string().trim().min(1).max(160),
@@ -183,6 +186,8 @@ export const createProduct = async (req, res) => {
       description = "",
       quantity = 0,
       reOrderLevel = 10,
+      baseUnit = "unit",
+      variants = [],
     } = req.body;
 
     if (!name || !category || !sku || costPrice === undefined || sellingPrice === undefined) {
@@ -231,6 +236,27 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({ message: "Reorder level must be a whole number greater than or equal to 0" });
     }
 
+    if (!Array.isArray(variants) || variants.length > 100) return res.status(400).json({ message: "Variants must be a list of up to 100 entries" });
+    const normalizedVariants = [];
+    const variantSkus = new Set();
+    for (const variant of variants) {
+      const variantSku = String(variant.sku || "").trim().toUpperCase();
+      const variantName = String(variant.name || "").trim();
+      const conversionToBase = Number(variant.conversionToBase ?? 1);
+      if (!variantName || !variantSku || !Number.isFinite(conversionToBase) || conversionToBase <= 0 || variantSkus.has(variantSku) || variantSku === normalizedSku) return res.status(400).json({ message: "Each variant needs a unique SKU, name, and positive unit conversion" });
+      variantSkus.add(variantSku);
+      for (const priceKey of ["costPrice", "sellingPrice"]) if (variant[priceKey] !== undefined && variant[priceKey] !== "") {
+        const price = Number(variant[priceKey]);
+        if (!isValidMoney(price) || price < 0) return res.status(400).json({ message: `Variant ${priceKey} must be a valid non-negative amount` });
+        variant[priceKey] = roundMoney(price);
+      }
+      normalizedVariants.push({ ...variant, name: variantName, sku: variantSku, unit: String(variant.unit || baseUnit || "unit").trim(), conversionToBase, attributes: { ...(variant.attributes || {}), ...(variant.size ? { size: String(variant.size).trim() } : {}), ...(variant.color ? { color: String(variant.color).trim() } : {}) } });
+    }
+    if (variantSkus.size) {
+      const duplicateVariantSku = await Products.findOne({ createdBy: workspaceOwnerId, $or: [{ sku: { $in: [...variantSkus] } }, { "variants.sku": { $in: [...variantSkus] } }] });
+      if (duplicateVariantSku) return res.status(409).json({ message: "A product already uses one of these variant SKUs" });
+    }
+
     const normalizedCostPrice = roundMoney(parsedCostPrice);
     const normalizedSellingPrice = roundMoney(parsedSellingPrice);
 
@@ -248,12 +274,23 @@ export const createProduct = async (req, res) => {
       costPrice: normalizedCostPrice,
       sellingPrice: normalizedSellingPrice,
       description: description?.trim() || "",
-      quantity: parsedQuantity,
+      quantity: 0,
       reOrderLevel: parsedReOrderLevel,
+      baseUnit: String(baseUnit || "unit").trim(),
+      variants: normalizedVariants,
       createdBy: workspaceOwnerId,
     });
 
-    const savedProduct = await product.save();
+    let savedProduct = await product.save();
+
+    if (parsedQuantity > 0) {
+      try {
+        savedProduct = (await postMovement({ productId: savedProduct._id, workspaceId: workspaceOwnerId, actorId: req.user._id, delta: parsedQuantity, type: "opening", reason: "Opening stock at product setup" })).product;
+      } catch (error) {
+        await Products.deleteOne({ _id: savedProduct._id, createdBy: workspaceOwnerId });
+        throw error;
+      }
+    }
 
     res.status(201).json({
       message: "Product created successfully",
@@ -292,19 +329,21 @@ export const deleteProduct = async (req, res) => {
 
     const workspaceOwnerId = req.workspaceOwnerId;
     const product = await Products.findOne({ _id: id, createdBy: workspaceOwnerId })
-      .select("_id name")
+      .select("_id name quantity")
       .lean();
 
     if (!product) {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    const [hasSales, hasPurchases] = await Promise.all([
+    const [hasSales, hasPurchases, hasMovements, hasOrders] = await Promise.all([
       Sales.exists({ product: id, createdBy: workspaceOwnerId }),
       Purchase.exists({ product: id, createdBy: workspaceOwnerId }),
+      StockMovement.exists({ product: id, createdBy: workspaceOwnerId }),
+      PurchaseOrder.exists({ createdBy: workspaceOwnerId, "lines.product": id }),
     ]);
 
-    if (hasSales || hasPurchases) {
+    if (hasSales || hasPurchases || hasMovements || hasOrders || product.quantity > 0) {
       return res.status(400).json({
         success: false,
         message: "Product has stock history and cannot be deleted",
@@ -321,6 +360,86 @@ export const deleteProduct = async (req, res) => {
   } catch (error) {
     console.error("Delete product error:", error);
     return res.status(500).json({ success: false, message: "Failed to delete product" });
+  }
+};
+
+export const updateProduct = async (req, res) => {
+  try {
+    if (req.user?.role !== "manager") return res.status(403).json({ success: false, message: "Only managers can edit products" });
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ success: false, message: "Invalid product ID" });
+    const fields = ["name", "sku", "supplier", "category", "costPrice", "sellingPrice", "description", "reOrderLevel", "baseUnit", "variants"];
+    const updates = Object.fromEntries(fields.filter((field) => req.body[field] !== undefined).map((field) => [field, req.body[field]]));
+    if (!Object.keys(updates).length) return res.status(400).json({ success: false, message: "Provide at least one field to update" });
+    if (updates.category && !await Category.exists({ _id: updates.category, createdBy: req.workspaceOwnerId })) return res.status(400).json({ success: false, message: "Category does not exist in this workspace" });
+    const currentProduct = await Products.findOne({ _id: id, createdBy: req.workspaceOwnerId }).select("sku variants").lean();
+    if (!currentProduct) return res.status(404).json({ success: false, message: "Product not found" });
+    if (updates.sku) updates.sku = String(updates.sku).trim().toUpperCase();
+    if (updates.name) updates.name = String(updates.name).trim();
+    if (updates.name && await Products.exists({ createdBy: req.workspaceOwnerId, _id: { $ne: id }, name: { $regex: `^${updates.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" } })) return res.status(409).json({ success: false, message: "Product name already exists" });
+    for (const key of ["costPrice", "sellingPrice"]) if (updates[key] !== undefined) {
+      const n = Number(updates[key]);
+      if (!isValidMoney(n) || n < 0) return res.status(400).json({ success: false, message: `${key} must be a valid non-negative amount` });
+      updates[key] = roundMoney(n);
+    }
+    for (const key of ["reOrderLevel"]) if (updates[key] !== undefined) {
+      const n = Number(updates[key]);
+      if (!Number.isSafeInteger(n) || n < 0) return res.status(400).json({ success: false, message: `${key} must be a non-negative whole number` });
+      updates[key] = n;
+    }
+    if (updates.variants !== undefined) {
+      if (!Array.isArray(updates.variants) || updates.variants.length > 100) return res.status(400).json({ success: false, message: "Variants must be a list of up to 100 entries" });
+      const skus = new Set();
+      const effectiveProductSku = updates.sku || currentProduct.sku;
+      for (const variant of updates.variants) {
+        if (variant._id && (!mongoose.isValidObjectId(variant._id) || !(currentProduct.variants || []).some((item) => String(item._id) === String(variant._id)))) return res.status(400).json({ success: false, message: "Variant ID does not belong to this product" });
+        variant.sku = String(variant.sku || "").trim().toUpperCase();
+        variant.name = String(variant.name || "").trim();
+        variant.unit = String(variant.unit || updates.baseUnit || "unit").trim();
+        variant.conversionToBase = Number(variant.conversionToBase ?? 1);
+        variant.attributes = { ...(variant.attributes || {}), ...(variant.size ? { size: String(variant.size).trim() } : {}), ...(variant.color ? { color: String(variant.color).trim() } : {}) };
+        if (!variant.name || !variant.sku || !Number.isFinite(variant.conversionToBase) || variant.conversionToBase <= 0 || skus.has(variant.sku) || variant.sku === effectiveProductSku) return res.status(400).json({ success: false, message: "Each variant needs a unique SKU, name, and positive unit conversion" });
+        skus.add(variant.sku);
+        for (const key of ["costPrice", "sellingPrice"]) if (variant[key] !== undefined) {
+          const n = Number(variant[key]);
+          if (!isValidMoney(n) || n < 0) return res.status(400).json({ success: false, message: `Variant ${key} is invalid` });
+          variant[key] = roundMoney(n);
+        }
+      }
+      const retained = new Set(updates.variants.map((variant) => String(variant._id || "")).filter(Boolean));
+      for (const oldVariant of currentProduct.variants || []) {
+        if (retained.has(String(oldVariant._id))) {
+          const revised = updates.variants.find((variant) => String(variant._id) === String(oldVariant._id));
+          if (Number(revised.conversionToBase) !== Number(oldVariant.conversionToBase)) {
+            const [hasMovement, hasSales, hasOrder, hasBalance] = await Promise.all([
+              StockMovement.exists({ product: id, variantId: oldVariant._id, createdBy: req.workspaceOwnerId }),
+              Sales.exists({ product: id, variantId: oldVariant._id, createdBy: req.workspaceOwnerId }),
+              PurchaseOrder.exists({ createdBy: req.workspaceOwnerId, "lines.variantId": oldVariant._id }),
+              (await import("../models/stockBalanceModel.js")).default.exists({ product: id, variantId: oldVariant._id, createdBy: req.workspaceOwnerId }),
+            ]);
+            const hasHistory = hasMovement || hasSales || hasOrder || hasBalance;
+            if (hasHistory) return res.status(409).json({ success: false, message: `Unit conversion for ${oldVariant.sku} is locked after stock history exists` });
+          }
+          continue;
+        }
+        const [usedInSales, usedInPurchases, usedInMovements, hasBalance] = await Promise.all([
+          Sales.exists({ product: id, variantId: oldVariant._id, createdBy: req.workspaceOwnerId }),
+          PurchaseOrder.exists({ createdBy: req.workspaceOwnerId, "lines.variantId": oldVariant._id }),
+          StockMovement.exists({ product: id, variantId: oldVariant._id, createdBy: req.workspaceOwnerId }),
+          (await import("../models/stockBalanceModel.js")).default.exists({ product: id, variantId: oldVariant._id, createdBy: req.workspaceOwnerId }),
+        ]);
+        if (usedInSales || usedInPurchases || usedInMovements || hasBalance) return res.status(409).json({ success: false, message: `Variant ${oldVariant.sku} has stock history and cannot be removed` });
+      }
+      const duplicate = await Products.findOne({ createdBy: req.workspaceOwnerId, _id: { $ne: id }, $or: [{ sku: { $in: [...skus] } }, { "variants.sku": { $in: [...skus] } }] }).select("_id").lean();
+      if (duplicate) return res.status(409).json({ success: false, message: "A product already uses one of these SKUs" });
+    }
+    const product = await Products.findOneAndUpdate({ _id: id, createdBy: req.workspaceOwnerId }, { $set: updates }, { new: true, runValidators: true }).populate("category", "name");
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    return res.json({ success: true, message: "Product updated", product });
+  } catch (error) {
+    if (error.code === 11000) return res.status(409).json({ success: false, message: "Product name or SKU already exists" });
+    console.error("Update product failed:", error);
+    return res.status(500).json({ success: false, message: "Could not update product" });
   }
 };
 

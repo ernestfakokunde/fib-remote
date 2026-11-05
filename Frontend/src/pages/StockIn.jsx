@@ -5,9 +5,10 @@ import { Download, Plus } from 'lucide-react';
 import PurchaseItem from '../components/PurchaseItem';
 import PurchaseSummary from '../components/PurchaseSummary';
 import { toast } from 'react-toastify';
-import { formatNumber, localDateBoundary, localDateString } from '../utils/format';
+import { formatCurrency, formatNumber, localDateBoundary, localDateString } from '../utils/format';
 import { downloadCsv } from '../utils/csv';
 import { Button, EmptyState, Skeleton } from '../components/ui';
+import API from '../api/axiosInstance';
 
 const filterButtonClass = (active) =>
   `min-h-10 rounded-lg px-3 py-2 text-sm font-medium transition ${
@@ -19,6 +20,7 @@ const filterButtonClass = (active) =>
 const StockIn = () => {
   const { getProductsDropdown, createPurchase, getPurchases } = useGlobalContext();
   const [productsDropdown, setProductsDropdown] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -28,7 +30,7 @@ const StockIn = () => {
   const [filterMode, setFilterMode] = useState('all');
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
-  const [form, setForm] = useState({ productId: '', quantity: 1, costPrice: '', supplier: '', date: '' });
+  const [form, setForm] = useState({ productId: '', locationId: '', quantity: 1, costPrice: '', supplier: '', date: '' });
   const [isSaving, setIsSaving] = useState(false);
   const [summary, setSummary] = useState({ totalValue: 0, transactions: 0 });
 
@@ -36,6 +38,9 @@ const StockIn = () => {
     try {
       const res = await getProductsDropdown();
       setProductsDropdown(res.data?.products || []);
+      const locationResponse = await API.get('/inventory/locations');
+      setLocations(locationResponse.data?.locations || []);
+      setForm((current) => ({ ...current, locationId: current.locationId || locationResponse.data?.defaultLocation || '' }));
     } catch (err) {
       console.error(err);
     }
@@ -94,7 +99,7 @@ const StockIn = () => {
   }, [endDateFilter, fetchPurchases, filterMode, page, startDateFilter]);
 
   const openModal = () => {
-    setForm({ productId: '', quantity: 1, costPrice: '', supplier: '', date: '' });
+    setForm({ productId: '', locationId: locations.find((location) => location.isDefault)?._id || locations[0]?._id || '', quantity: 1, costPrice: '', supplier: '', date: '' });
     setShowModal(true);
   };
 
@@ -108,6 +113,7 @@ const StockIn = () => {
     try {
       await createPurchase({
         productId: form.productId,
+        locationId: form.locationId || undefined,
         quantity: form.quantity,
         costPrice: form.costPrice,
         supplier: form.supplier,
@@ -199,6 +205,7 @@ const StockIn = () => {
                     {productsDropdown.map((p) => <option key={p._id} value={p._id}>{p.name} ({p.quantity})</option>)}
                   </select>
                 </div>
+                <div><label className="mb-1 block text-sm text-[var(--muted)]">Receive into location</label><select required className="theme-input app-control px-3" value={form.locationId} onChange={(e) => setForm((current) => ({ ...current, locationId: e.target.value }))}>{locations.map((location) => <option key={location._id} value={location._id}>{location.name}</option>)}</select></div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="mb-1 block text-sm text-[var(--muted)]">Quantity</label>

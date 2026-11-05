@@ -175,6 +175,7 @@ export const GlobalProvider = ({ children }) => {
       await fetchUserProfile(); // Refresh user data after product creation to update product count in profile
       return res;
     }
+    const updateProduct = (id, data) => API.patch(`/products/${id}`, data);
     const analyzeProductImage = (file) => {
       const body = new FormData();
       body.append('image', file);
@@ -194,6 +195,7 @@ export const GlobalProvider = ({ children }) => {
     // Sales API
     const createSale = (data) => API.post('/sales/createSale', data);
     const getSales = (params = {}) => API.get('/sales/getAllSales', { params });
+    const createSalesReturn = (data) => API.post('/sales/returns', data);
     const getSalesPerDay = (params = {}) => API.get('/sales/sales-per-day', { params });
     const getMonthlyProfit = (params = {}) => API.get('/analytics/monthly-profit', { params });
     const getDashboardOverview = (params = {}) => API.get('/dashboard/overview', { params });
@@ -270,12 +272,14 @@ export const GlobalProvider = ({ children }) => {
     createProduct,
     analyzeProductImage,
     deleteProduct,
+    updateProduct,
     getCategories,
     createCategory,
     createSalesperson,
     getSalespeople,
     createSale,
     	getSales,
+    createSalesReturn,
     	getSalesPerDay,
     getMonthlyProfit,
     getDashboardOverview,

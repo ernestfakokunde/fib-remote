@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Loader2, Trash2, Camera } from "lucide-react";
+import { Search, Plus, Loader2, Trash2, Camera, Pencil } from "lucide-react";
 import { toast } from "react-toastify";
 import { useGlobalContext } from "../context/context";
 import Modal from '../components/Modal';
@@ -36,12 +36,15 @@ const initialProductForm = {
   costPrice: "",
   sellingPrice: "",
   quantity: "0",
+  baseUnit: "unit",
+  variants: [],
   description: "",
   reOrderLevel: "10",
 };
 
 export default function Products() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingProductId, setEditingProductId] = useState("");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [productForm, setProductForm] = useState(initialProductForm);
@@ -56,7 +59,7 @@ export default function Products() {
   const [analyzingImage, setAnalyzingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
 
-  const { getProducts, createProduct, deleteProduct, getCategories, createCategory, analyzeProductImage, permissions, isSalesperson, user } = useGlobalContext();
+  const { getProducts, createProduct, updateProduct, deleteProduct, getCategories, createCategory, analyzeProductImage, permissions, isSalesperson, user } = useGlobalContext();
 
   const handleImageAnalysis = async (file) => {
     if (!file) return;
@@ -83,7 +86,7 @@ export default function Products() {
 
   const resetProductForm = (list = categories) => {
     const firstCategory = list[0]?._id || "";
-    setProductForm({ ...initialProductForm, category: firstCategory });
+    setProductForm({ ...initialProductForm, category: firstCategory, variants: [] });
   };
 
   const fetchProducts = async (page = 1, searchValue = "", categoryId = "") => {
@@ -131,7 +134,7 @@ export default function Products() {
   const handleProductSubmit = async (e) => {
     e.preventDefault();
     if (!permissions.canCreateProduct) {
-      toast.error("You're not allowed to add products");
+      toast.error("You're not allowed to manage products");
       setShowAddModal(false);
       return;
     }
@@ -171,14 +174,15 @@ export default function Products() {
 
     setIsSavingProduct(true);
     try {
-      const payload = { ...productForm, category: createdCategoryId || productForm.category };
-      const res = await createProduct(payload);
-      toast.success(res.data?.message || "Product added!");
+      const payload = { ...productForm, category: createdCategoryId || productForm.category, variants: productForm.variants.filter((variant) => variant.name?.trim() || variant.sku?.trim()) };
+      const res = editingProductId ? await updateProduct(editingProductId, payload) : await createProduct(payload);
+      toast.success(res.data?.message || (editingProductId ? "Product updated" : "Product added!"));
       setShowAddModal(false);
+      setEditingProductId("");
       resetProductForm();
       await fetchProducts(1, searchTerm, selectedCategory);
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to create product";
+      const msg = error.response?.data?.message || (editingProductId ? "Failed to update product" : "Failed to create product");
       toast.error(msg);
     } finally {
       setIsSavingProduct(false);
@@ -216,6 +220,14 @@ export default function Products() {
       toast.error("You're not allowed to view this action");
       return;
     }
+    setEditingProductId("");
+    resetProductForm();
+    setShowAddModal(true);
+  };
+
+  const handleOpenEditModal = (product) => {
+    setEditingProductId(product._id);
+    setProductForm({ name: product.name || "", sku: product.sku || "", supplier: product.supplier || "", category: product.category?._id || product.category || "", costPrice: String(product.costPrice ?? ""), sellingPrice: String(product.sellingPrice ?? ""), quantity: "0", description: product.description || "", reOrderLevel: String(product.reOrderLevel ?? 10), baseUnit: product.baseUnit || "unit", variants: (product.variants || []).map((variant) => ({ ...variant, costPrice: variant.costPrice ?? "", sellingPrice: variant.sellingPrice ?? "" })) });
     setShowAddModal(true);
   };
 
@@ -356,15 +368,7 @@ export default function Products() {
                         </td>
                         <td className="py-4 px-4">
                           {permissions.canManageProducts ? (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteProduct(product._id)}
-                              disabled={deletingProductId === product._id}
-                              className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-1.5 text-xs font-medium text-[var(--danger)] transition hover:bg-rose-500/10 disabled:opacity-60"
-                            >
-                              {deletingProductId === product._id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                              Delete
-                            </button>
+                            <div className="flex gap-2"><button type="button" onClick={() => handleOpenEditModal(product)} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium"><Pencil className="h-3 w-3" /> Edit</button><button type="button" onClick={() => handleDeleteProduct(product._id)} disabled={deletingProductId === product._id} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-1.5 text-xs font-medium text-[var(--danger)] transition hover:bg-rose-500/10 disabled:opacity-60">{deletingProductId === product._id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}Delete</button></div>
                           ) : (
                             <span className="text-xs text-[var(--muted)]">View only</span>
                           )}
@@ -439,7 +443,8 @@ export default function Products() {
                   <div><span className="text-[var(--muted)]">Stock Value</span><div className="tabular-nums text-[var(--text)]">{formatCurrency(stockValue)}</div></div>
                 </div>
                 {permissions.canManageProducts ? (
-                  <div className="mt-4 flex justify-end">
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button type="button" onClick={() => handleOpenEditModal(product)} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-medium"><Pencil className="h-3 w-3" /> Edit</button>
                     <button
                       type="button"
                       onClick={() => handleDeleteProduct(product._id)}
@@ -462,19 +467,19 @@ export default function Products() {
       </div>
 
       {showAddModal && (
-        <Modal onClose={() => setShowAddModal(false)} title="Add product" widthClass="max-w-2xl" topOffset="pt-10">
+        <Modal onClose={() => { setShowAddModal(false); setEditingProductId(""); }} title={editingProductId ? "Edit product" : "Add product"} widthClass="max-w-2xl" topOffset="pt-10">
           <div className="bg-[var(--card)] rounded-xl shadow-lg w-full max-h-[85vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Add Product</h2>
-                <button onClick={() => setShowAddModal(false)} className="text-[var(--muted)]">Close</button>
+                <h2 className="text-xl font-bold">{editingProductId ? "Edit product details" : "Add Product"}</h2>
+                <button onClick={() => { setShowAddModal(false); setEditingProductId(""); }} className="text-[var(--muted)]">Close</button>
               </div>
               <form onSubmit={handleProductSubmit}>
-                <div className="mb-4 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-4">
+                {!editingProductId && <div className="mb-4 rounded-xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm font-medium">Snap to add</p><p className="mt-1 max-w-sm text-xs text-[var(--muted)]">Get a name and description suggestion from a photo. Review everything before saving.</p></div><label className={`inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-medium ${analyzingImage?'pointer-events-none opacity-60':''}`}><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(e)=>handleImageAnalysis(e.target.files?.[0])}/>{analyzingImage?<Loader2 className="h-4 w-4 animate-spin"/>:<Camera className="h-4 w-4"/>}{analyzingImage?'Analyzing photo':'Take or upload photo'}</label></div>
                   {imagePreview && <div className="mt-3 flex items-center gap-3"><img src={imagePreview} alt="Selected product" className="h-14 w-14 rounded-lg object-cover"/><span className="text-xs text-[var(--muted)]">{analyzingImage?'Reading product details…':'Photo selected. Review suggested fields below.'}</span></div>}
                   <p className="mt-2 text-[11px] text-[var(--muted)]">Image analysis is optional. You can always enter the details manually.</p>
-                </div>
+                </div>}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--muted)] mb-1">Product Name*</label>
@@ -561,7 +566,7 @@ export default function Products() {
                       className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
                   </div>
-                  <div>
+                  {!editingProductId && <div>
                     <label className="block text-sm font-medium text-[var(--muted)] mb-1">Initial Quantity*</label>
                     <input
                       type="number"
@@ -569,6 +574,10 @@ export default function Products() {
                       onChange={(e) => updateProductForm({ quantity: e.target.value })}
                       className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
                     />
+                  </div>}
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--muted)] mb-1">Base unit</label>
+                    <input maxLength={24} type="text" value={productForm.baseUnit || "unit"} onChange={(e) => updateProductForm({ baseUnit: e.target.value })} placeholder="unit, bottle, kg" className="w-full px-3 py-2 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--muted)] mb-1">Reorder Level</label>
@@ -580,6 +589,10 @@ export default function Products() {
                     />
                   </div>
 
+                  <div className="sm:col-span-2">
+                    <div className="mb-2 flex items-center justify-between"><div><label className="block text-sm font-medium text-[var(--muted)]">Product variants</label><p className="mt-1 text-xs text-[var(--muted)]">Add size, colour, pack, or carton SKUs. Conversion is the number of base units in one variant unit.</p></div><button type="button" onClick={() => updateProductForm({ variants: [...(productForm.variants || []), { name: "", sku: "", unit: "", conversionToBase: "1" }] })} className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-medium">Add variant</button></div>
+                    <div className="space-y-2">{(productForm.variants || []).map((variant, index) => <div key={variant._id || index} className="grid gap-2 rounded-lg border border-[var(--border)] p-3 sm:grid-cols-4"><input required aria-label="Variant name" placeholder="Variant (Large / Carton)" value={variant.name || ""} onChange={(event) => updateProductForm({ variants: productForm.variants.map((item, i) => i === index ? { ...item, name: event.target.value } : item) })} className="theme-input app-control px-3"/><input required aria-label="Variant SKU" placeholder="Variant SKU" value={variant.sku || ""} onChange={(event) => updateProductForm({ variants: productForm.variants.map((item, i) => i === index ? { ...item, sku: event.target.value } : item) })} className="theme-input app-control px-3"/><input aria-label="Size or pack option" placeholder="Size / pack (optional)" value={variant.size ?? variant.attributes?.size ?? ""} onChange={(event) => updateProductForm({ variants: productForm.variants.map((item, i) => i === index ? { ...item, size: event.target.value } : item) })} className="theme-input app-control px-3"/><input aria-label="Color option" placeholder="Color (optional)" value={variant.color ?? variant.attributes?.color ?? ""} onChange={(event) => updateProductForm({ variants: productForm.variants.map((item, i) => i === index ? { ...item, color: event.target.value } : item) })} className="theme-input app-control px-3"/><input aria-label="Unit name" placeholder="Unit (e.g. carton)" value={variant.unit || ""} onChange={(event) => updateProductForm({ variants: productForm.variants.map((item, i) => i === index ? { ...item, unit: event.target.value } : item) })} className="theme-input app-control px-3"/><input required aria-label="Conversion to base unit" type="number" min="0.000001" step="any" placeholder="Base units per variant" value={variant.conversionToBase ?? "1"} onChange={(event) => updateProductForm({ variants: productForm.variants.map((item, i) => i === index ? { ...item, conversionToBase: event.target.value } : item) })} className="theme-input app-control px-3"/><button type="button" onClick={() => updateProductForm({ variants: productForm.variants.filter((_, i) => i !== index) })} className="rounded-lg border border-rose-500/20 px-3 py-2 text-xs text-[var(--danger)]">Remove variant</button></div>)}</div>
+                  </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-[var(--muted)] mb-1">Description</label>
                     <textarea
@@ -594,7 +607,7 @@ export default function Products() {
                 <div className="mt-6 flex items-center justify-end gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => { setShowAddModal(false); setEditingProductId(""); }}
                     className="px-4 py-2 border border-[var(--border)] rounded text-sm"
                   >
                     Cancel
@@ -604,7 +617,7 @@ export default function Products() {
                     disabled={disableProductSubmit || isSavingCategory}
                     className="px-4 py-2 bg-[var(--primary)] text-white rounded text-sm disabled:opacity-60"
                   >
-                    {isSavingProduct || isSavingCategory ? "Saving..." : "Add Product"}
+                    {isSavingProduct || isSavingCategory ? "Saving..." : editingProductId ? "Save changes" : "Add Product"}
                   </button>
                 </div>
               </form>

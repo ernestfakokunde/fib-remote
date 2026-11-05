@@ -7,6 +7,10 @@ const purchaseSchema = mongoose.Schema(
       ref: "Products",
       required: true,
     },
+    locationId: { type: mongoose.Schema.Types.ObjectId, ref: "Location", default: null },
+    variantId: { type: mongoose.Schema.Types.ObjectId, default: null },
+    variantName: { type: String, default: "" },
+    conversionToBase: { type: Number, min: 0.000001, default: 1 },
     quantity: {
       type: Number,
       required: true,
