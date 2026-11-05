@@ -21,7 +21,7 @@ const TopBarNav = () => {
   return (
     <div className="absolute top-16 right-4 bg-[var(--sidebar)] shadow-md rounded-md p-4 lg:hidden">
       <nav className="space-y-2">
-        <NavItem to="/" label="Dashboard" Icon={LayoutDashboard} />
+        <NavItem to="/dashboard" label="Dashboard" Icon={LayoutDashboard} />
         <NavItem to="/products" label="Products" Icon={Package} />
         <NavItem to="/stock-in" label="Stock-In" Icon={ArrowDownCircle} />
         <NavItem to="/stock-out" label="Stock-Out" Icon={ArrowUpCircle} />

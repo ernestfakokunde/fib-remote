@@ -119,14 +119,12 @@ export const Register = async (req, res) => {
 
 export const Login = async (req, res) => {
   try {
-    const { email, password, accountType } = req.body;
-
-    const normalizedAccountType = typeof accountType === 'string' ? accountType.trim().toLowerCase() : accountType;
-    if (normalizedAccountType && !['manager', 'salesperson', 'superadmin'].includes(normalizedAccountType)) {
-      return res.status(400).json({ message: `Account type is invalid: ${String(accountType)}` });
-    }
+    const { email, password } = req.body;
 
     const identifier = email?.trim();
+    if (!identifier || typeof password !== 'string') {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
     const user = await User.findOne({
       $or: [
         { email: identifier?.toLowerCase() },
@@ -141,21 +139,12 @@ export const Login = async (req, res) => {
     const ismatch = await bcrypt.compare(password, user.password);
 
     if (!ismatch) {
-      return res.status(400).json({ message: 'Password is invalid' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const role = getEffectiveRole(user);
-    if (role === 'superadmin' && normalizedAccountType !== 'superadmin') {
-      return res.status(403).json({ message: 'Use the platform owner sign-in page.' });
-    }
-    if (normalizedAccountType && normalizedAccountType !== role) {
-      return res.status(403).json({
-        message: role === 'superadmin'
-          ? 'This is a platform owner account. Use the platform owner sign-in page.'
-          : role === 'manager'
-          ? 'This is a business owner account. Choose Business owner to sign in.'
-          : 'This is a team member account. Choose Team member to sign in.',
-      });
+    if (role === 'superadmin' && !user.isSuperAdmin) {
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const token = generateToken(user._id);

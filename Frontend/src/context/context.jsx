@@ -73,11 +73,10 @@ export const GlobalProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const logout = useCallback(() => {
-    const isPlatformOwner = window.location.pathname.startsWith('/admin');
     localStorage.removeItem("token");
     delete API.defaults.headers.common['Authorization'];
     setUser(null);
-    navigate(isPlatformOwner ? '/admin/login' : '/login');
+    navigate('/login');
   }, [navigate]);
 
   //create reusable profile fetch functions
@@ -143,7 +142,7 @@ export const GlobalProvider = ({ children }) => {
       setUser(res.data.user);
       toast.success("Login successful");
       setLoading(false);
-      navigate(res.data?.user?.role === 'superadmin' ? '/admin' : '/');
+      navigate(res.data?.user?.role === 'superadmin' ? '/admin' : '/dashboard');
 
     } catch (error) {
       setLoading(false);

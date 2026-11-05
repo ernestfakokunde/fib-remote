@@ -12,7 +12,7 @@ const getEffectiveRole = (user) => {
   return 'manager';
 };
 
-const ProtectedRoute = ({ children, allowedRoles = null, redirectTo = '/', loginTo = '/login' }) => {
+const ProtectedRoute = ({ children, allowedRoles = null, redirectTo = '/dashboard', loginTo = '/login' }) => {
   const { user, loading } = useGlobalContext();
   const location = useLocation();
   const hasWarnedRef = useRef(false);

@@ -76,14 +76,14 @@
 .landing-page { isolation: isolate; }
 .landing-header { position: relative; z-index: 20; border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(16px); }
 .landing-button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: .8rem; font-size: .875rem; font-weight: 800; transition: transform 180ms ease, background-color 180ms ease, filter 180ms ease; }
-.landing-button-primary { min-height: 2.75rem; padding-inline: 1rem; background: var(--primary); color: #fff; box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--primary) 80%, transparent); }
+.landing-button-primary { min-height: 2.75rem; padding-inline: 1rem; background: var(--gradient); color: #fff; box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--primary) 80%, transparent); }
 .landing-button-primary:hover { transform: translateY(-2px); filter: brightness(1.06); }
 .landing-button-secondary { border: 1px solid var(--border); background: var(--card); color: var(--text); }
 .landing-button-secondary:hover { background: var(--surface); }
-.landing-hero { min-height: 39rem; }
+.landing-hero { min-height: 39rem; isolation: isolate; background: radial-gradient(ellipse at 82% 18%, color-mix(in srgb, #7C3AED 10%, transparent), transparent 34%), radial-gradient(ellipse at 4% 80%, color-mix(in srgb, #14B8A6 8%, transparent), transparent 32%); }
 .landing-orb { position: absolute; pointer-events: none; border-radius: 9999px; filter: blur(2px); }
 .landing-orb-one { top: -6rem; left: -16rem; width: 36rem; height: 36rem; background: radial-gradient(circle, color-mix(in srgb, var(--primary) 14%, transparent), transparent 68%); }
-.landing-highlight { color: var(--primary); }
+.landing-highlight { background: linear-gradient(105deg, #2563EB 4%, #4F46E5 53%, #A855F7 100%); background-clip: text; color: transparent; }
 .landing-preview-wrap { position: relative; margin-inline: auto; width: 100%; max-width: 35.625rem; }
 .landing-preview-glow { position: absolute; inset: -1.5rem; border-radius: 2rem; background: radial-gradient(ellipse, color-mix(in srgb, var(--primary) 16%, transparent), transparent 70%); filter: blur(18px); }
 .landing-preview { position: relative; overflow: hidden; border: 1px solid var(--border); border-radius: 1.35rem; background: var(--card); padding: 1rem; box-shadow: 0 32px 90px -42px rgba(31,48,104,.38); }
@@ -97,9 +97,11 @@
 .landing-section-heading .landing-intro { margin-inline: auto; }
 .landing-feature-card { min-height: 17rem; border: 1px solid var(--border); border-radius: 1.15rem; background: var(--bg); padding: 1.5rem; transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
 .landing-feature-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--primary) 32%, var(--border)); box-shadow: var(--shadow); }
+.landing-feature-card:nth-child(2) > span:first-child { background: rgba(20,184,166,.12); color: #0D9488; }
+.landing-feature-card:nth-child(3) > span:first-child { background: rgba(168,85,247,.12); color: #9333EA; }
 .landing-step-card { display: grid; grid-template-columns: auto auto 1fr; align-items: start; gap: 1rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); padding: 1.25rem; }
 .landing-step-number { padding-top: .8rem; color: var(--primary); font-size: .7rem; font-weight: 900; letter-spacing: .12em; }
-.landing-about { background: #10182b; }
+.landing-about { background: radial-gradient(ellipse at 88% 15%, rgba(124,58,237,.28), transparent 35%), radial-gradient(ellipse at 5% 95%, rgba(20,184,166,.15), transparent 30%), linear-gradient(120deg, #0B1736, #10182b 55%, #172554); }
 .landing-about-stat { min-height: 12rem; border: 1px solid rgba(255,255,255,.12); border-radius: 1.15rem; background: rgba(255,255,255,.045); padding: 1.5rem; color: #a8b5ff; }
 .landing-about-stat h3 { margin-top: 1rem; color: white; font-size: .95rem; font-weight: 800; }
 .landing-about-stat p { margin-top: .5rem; color: rgba(255,255,255,.6); font-size: .8125rem; line-height: 1.6; }
