@@ -9,6 +9,9 @@ export const generateSalesReport = async (req, res) => {
     if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
     const { start, end } = req.query;
+    let timeZone = req.query.timeZone || 'UTC';
+    try { new Intl.DateTimeFormat('en-US', { timeZone }).format(); }
+    catch { timeZone = 'UTC'; }
     const now = new Date();
     const endDate = end ? parseDateBoundary(end, true) : now;
     const startDate = start ? parseDateBoundary(start) : endDate && new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate() - 6));
@@ -18,7 +21,7 @@ export const generateSalesReport = async (req, res) => {
     // totals (revenue & cost)
     const totalsAgg = await Sales.aggregate([
       { $match: { createdBy: userId, date: { $gte: startDate, $lte: endDate } } },
-      { $group: { _id: null, totalRevenue: { $sum: "$totalRevenue" }, totalCost: { $sum: "$totalCost" } } }
+      { $group: { _id: null, totalRevenue: { $sum: "$totalRevenue" }, totalCost: { $sum: "$totalCost" }, transactions: { $sum: 1 } } }
     ]);
     const totals = totalsAgg[0] || { totalRevenue: 0, totalCost: 0 };
     const totalRevenue = roundMoney(totals.totalRevenue || 0);
@@ -31,9 +34,10 @@ export const generateSalesReport = async (req, res) => {
       { $match: { createdBy: userId, date: { $gte: startDate, $lte: endDate } } },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date", timezone: timeZone } },
           revenue: { $sum: "$totalRevenue" },
-          profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } }
+          profit: { $sum: { $subtract: ["$totalRevenue", "$totalCost"] } },
+          transactions: { $sum: 1 }
         }
       },
       { $sort: { _id: 1 } }
@@ -82,6 +86,7 @@ export const generateSalesReport = async (req, res) => {
       totalCost,
       grossProfit,
       profitMargin,
+      totalTransactions: totals.transactions || 0,
       trend: trend.map((item) => ({ ...item, revenue: roundMoney(item.revenue || 0), profit: roundMoney(item.profit || 0) })),
       bestSellingProducts: bestSellingProducts.map((item) => ({ ...item, revenue: roundMoney(item.revenue || 0) })),
       slowSellingProducts
