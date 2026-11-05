@@ -120,6 +120,27 @@ html:not(.theme-dark) .text-sky-100, html:not(.theme-dark) .text-cyan-100, html:
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
+select,
+.theme-input select,
+select.theme-input {
+  min-height: 2.375rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background-color: var(--card);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .7rem center;
+  background-size: .9rem;
+  padding-right: 2.25rem;
+  color: var(--text);
+  font-size: .8125rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+select:hover { border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); }
+select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent); }
+select option { background: var(--card); color: var(--text); }
+
 .theme-btn-primary {
   background: var(--gradient);
   color: white;
@@ -207,9 +228,10 @@ html:not(.theme-dark) .text-sky-100, html:not(.theme-dark) .text-cyan-100, html:
 .gradient-3 { background-image: linear-gradient(135deg, #7C3AED, #DB2777); }
 .gradient-4 { background-image: linear-gradient(135deg, #F59E0B, #EA580C); }
 
-.app-page-title { font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.15; letter-spacing: -0.045em; font-weight: 700; }
-.app-page-copy { max-width: 44rem; color: var(--muted); font-size: .925rem; line-height: 1.6; }
+.app-page-title { font-size: clamp(1.45rem, 2.6vw, 1.85rem); line-height: 1.2; letter-spacing: -0.04em; font-weight: 650; }
+.app-page-copy { max-width: 44rem; color: var(--muted); font-size: .875rem; line-height: 1.6; }
 .app-card { border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+.pricing-card-featured { border-color: color-mix(in srgb, var(--primary) 42%, var(--border)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 10%, transparent), var(--shadow); }
 .app-control { min-height: 42px; border-radius: 10px; }
 .money-value { font-variant-numeric: tabular-nums lining-nums; letter-spacing: -0.025em; }
 .app-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .75rem; }
