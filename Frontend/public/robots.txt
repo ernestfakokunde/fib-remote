@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /sales
+Disallow: /stock-in
+Disallow: /stock-out
+Disallow: /expenses
+Disallow: /products
+Disallow: /inventory-operations
+Disallow: /reports
+Disallow: /profile
+Disallow: /premium
+Disallow: /team
+Disallow: /settings
+Disallow: /admin
+
+Sitemap: https://spectra-inventory.vercel.app/sitemap.xml

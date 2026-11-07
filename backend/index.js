@@ -30,6 +30,7 @@ const app = express();
 //middlewares
 // Update your CORS configuration like this:
 const allowedOrigins = [
+  'https://spectra-inventory.vercel.app',
   'https://spectra-invents.vercel.app',
   'http://localhost:5173', // Local development
   process.env.FRONTEND_URL, // Your production frontend
@@ -42,7 +43,7 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps, curl, postman)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+    if (allowedOrigins.filter(Boolean).includes(origin) || allowedOrigins.includes('*')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
